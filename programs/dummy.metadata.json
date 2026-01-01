@@ -1,0 +1,17 @@
+{
+  "name": "Dummy",
+  "description": "A dummy program for testing",
+  "config": {
+    "channel": {
+      "name": "Channel",
+      "description": "The broadcast channel to be used to communicate with other dummy programs",
+      "type": "number",
+      "default": 10
+    },
+    "test": {
+      "name": "Test",
+      "description": "This is a test config option",
+      "type": "string"
+    }
+  }
+}
