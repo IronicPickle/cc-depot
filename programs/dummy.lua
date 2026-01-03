@@ -1,5 +1,5 @@
-local utils = require(DIR.."/lib/utils")
-local Monitor = require(DIR.."/lib/peripherals/Monitor")
+local utils = require("/lib/utils")
+local Monitor = require("/lib/peripherals/Monitor")
 
 local function start()
     print("DUMMY TEST")
