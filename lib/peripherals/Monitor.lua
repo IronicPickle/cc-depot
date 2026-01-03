@@ -1,3 +1,5 @@
+local test = require("/cc_depot/lib/peripherals/test")
+
 local Monitor = {}
 
 function Monitor:new(monitor)
