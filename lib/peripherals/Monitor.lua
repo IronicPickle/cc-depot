@@ -3,38 +3,84 @@ local test = require("/cc_depot/lib/peripherals/test")
 local Monitor = {}
 
 function Monitor:new(monitor)
-  local o = { monitor = monitor }
-  setmetatable(o, self)
-  self.__index = self
+    local resX, resY = monitor.getSize()
+    monitor.x = resX
+    monitor.y = resY
 
-  return o
+    local o = { monitor = monitor }
+    setmetatable(o, self)
+    self.__index = self
+
+    return o
 end
 
-function Monitor:write(text, x, y, align, textColor, bgColor)
+function Monitor:write(text, options)
+    local cursorX, cursorY = term.getCursorPos()
+
     local prevTextColor = self.monitor.getTextColor()
     local prevBgColor = self.monitor.getBackgroundColor()
+
+    local x = options.x or cursorX
+    local y = options.y or cursorY
+    local xPadding = options.xPadding or 0
+    local align = options.align or "left"
+    local textColor = options.textColor or prevTextColor
+    local bgColor = options.bgColor or prevBgColor
+
+    local wrap = options.wrap
+    local progressCursor = options.progressCursor
     
-    if(textColor) then
-        self.monitor.setTextColor(textColor)
+    self.monitor.setTextColor(textColor)
+    self.monitor.setBackgroundColor(bgColor)
+
+    local outputText = text
+    local overflowText = nil
+
+    local availableWidth = self.monitor.x - x - (xPadding * 2)
+    local shouldWrap = #text > availableWidth
+    if shouldWrap and wrap then
+        outputText = ""
+
+        for subString in text:gmatch("([^%s]+)") do
+            term.setTextColor(colors.white)
+            local newOutputText = #outputText == 0 and subString or outputText.." "..subString
+            if #newOutputText > availableWidth then break end
+            outputText = newOutputText
+        end
+
+        if #text > #outputText then
+            overflowText = text:sub(#outputText + 2)
+        end
     end
-    if(bgColor) then
-        self.monitor.setBackgroundColor(bgColor)
-    end
-    
-    local len = text:len() - 2
-    if(align == "center") then
+
+    local len = outputText:len() - 2
+    if align == "center" then
         x = ( ( self.monitor.x - len ) / 2 ) + x
-    elseif(align == "right") then
-        x = self.monitor.x - len - x - 1
-    elseif(align == "left") then 
-        x = 1 + x
+    elseif align == "right" then
+        x = self.monitor.x - len - (x + xPadding) - 1
+    elseif align == "left" then
+        x = 1 + (x + xPadding)
     end
-    
+
     self.monitor.setCursorPos(x, y)
-    self.monitor.write(text)
+    self.monitor.write(outputText)
     
     self.monitor.setTextColor(prevTextColor)
     self.monitor.setBackgroundColor(prevBgColor)
+
+    if overflowText then
+        self:write(overflowText, {
+            x=options.x,
+            y=y + 1,
+            xPadding=options.xPadding,
+            align=options.align,
+            textColor=options.textColor,
+            bgColor=options.bgColor,
+            progressCursor=options.progressCursor
+        })
+    else
+        self.monitor.setCursorPos(x + text:len(), progressCursor and y + 1 or y)
+    end
     
 end
 
@@ -43,7 +89,7 @@ function Monitor:drawBox(x, y, dx, dy, filled, bgColor)
     bgColor = bgColor or prevBgColor
     
     term.redirect(self.monitor)
-    if(filled) then
+    if filled then
         paintutils.drawFilledBox(
             x, y, dx, dy, bgColor
         )
@@ -59,19 +105,19 @@ end
 function Monitor:createButton(x, y, paddingX, paddingY, align, bgColor, textColor, text, onClick, disabled)
     local len = text:len()
     
-    if(align == "center") then
+    if align == "center" then
         x = ( ( self.monitor.x - (len + paddingX) ) / 2 ) + x
-    elseif(align == "right") then
+    elseif align == "right" then
         x = self.monitor.x - (len + paddingX) - x
-    elseif(align == "left") then
+    elseif align == "left" then
         x = x
     end
 
     local dx = x + len + (paddingX * 2) - 1
     local dy = y + (paddingY * 2)
 
-    Monitor.drawBox(self.monitor, x, y, dx, dy, true, bgColor)
-    Monitor.write(self.monitor, text, x + paddingX, y + paddingY, nil, textColor, bgColor)
+    self:drawBox(self.monitor, x, y, dx, dy, true, bgColor)
+    self:write(self.monitor, text, x + paddingX, y + paddingY, nil, textColor, bgColor)
 
     while true do
         local event, p1, p2, p3, p4, p5 = os.pullEvent()
@@ -89,19 +135,22 @@ function Monitor:createButton(x, y, paddingX, paddingY, align, bgColor, textColo
     end
 end
 
-function Monitor.fillBackground(bgColor)
+function Monitor:fillBackground(bgColor)
+    local prevBgColor = self.monitor.getBackgroundColor()
+
     self.monitor.bg = bgColor
     self.monitor.setBackgroundColor(self.monitor.bg)
   
-    Monitor.drawBox(self.monitor,
+    self:drawBox(
         1, 1, self.monitor.x, self.monitor.y,
         true
     )
+
 end
 
-function Monitor.createModal(title, bgColor, textColor, disabledColor, cancelButtonText, submitButtonText, buttons)
-    Monitor.fillBackground(self.monitor, bgColor)
-    Monitor.write(self.monitor, title, 0, 3, "center", textColor)
+function Monitor:createModal(title, bgColor, textColor, disabledColor, cancelButtonText, submitButtonText, buttons)
+    self:fillBackground(bgColor)
+    self:write(title, 0, 3, "center", textColor)
 
     local modalInner = setup.setupWindow(
         self.monitor, 2, 6, self.monitor.x - 2, self.monitor.y - 10
@@ -114,13 +163,13 @@ function Monitor.createModal(title, bgColor, textColor, disabledColor, cancelBut
     if not awaitButtonInput then
         awaitButtonInput = function(disabled)
             function createCancelButton()
-                Monitor.createButton(self.monitor, -6, self.monitor.y - 3, 2, 1, "center", bgColor, textColor, cancelButtonText or "Cancel", function ()
+                self:createButton(self.monitor, -6, self.monitor.y - 3, 2, 1, "center", bgColor, textColor, cancelButtonText or "Cancel", function ()
                 action = "cancel"
                 return true
                 end)
             end
             function createSubmitButton()
-                Monitor.createButton(ouself.monitortput, 6, self.monitor.y - 3, 2, 1, "center", disabled and disabledColor or textColor, bgColor, submitButtonText or "Create", function ()
+                self:createButton(ouself.monitortput, 6, self.monitor.y - 3, 2, 1, "center", disabled and disabledColor or textColor, bgColor, submitButtonText or "Create", function ()
                 action = "submit"
                 return true
                 end, disabled)

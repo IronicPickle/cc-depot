@@ -122,4 +122,21 @@ function M.decode64(data)
   end))
 end
 
+function M.writeToFile(path, content)
+    local dir = fs.getDir(path)
+    if not fs.exists(dir) then fs.makeDir(dir) end
+
+    local file = fs.open(path, "w")
+    file.write(content)
+    file.close()
+end
+
+function M.stringSplit(input, seperator)
+  local stringSegments = {}
+  for subString in input:gmatch("([^"..seperator.."]+)") do
+    table.insert(stringSegments, subString)
+  end
+  return stringSegments
+end
+
 return M
