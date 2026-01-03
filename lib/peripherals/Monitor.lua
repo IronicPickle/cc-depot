@@ -1,4 +1,4 @@
-local test = require("/lib/peripherals/test")
+local test = require("/lib/peripherals/test/test")
 
 local Monitor = {}
 
