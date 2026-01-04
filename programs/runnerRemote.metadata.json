@@ -1,0 +1,4 @@
+{
+  "label": "Runner Remote",
+  "description": "Allows remote control of the runner program responsible for running programs on all computers. (Requires remote machines to have a modem)"
+}
