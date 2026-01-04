@@ -353,14 +353,14 @@ local function getIsProgramDownloaded(config)
     return fs.exists(DIR.."/programs/"..config.name..".lua")
 end
 
-local function getFileDeps(contents)
-    local deps = {}
+local DOWNLOADED_DEPS = {}
 
+local function getFileDeps(contents)
     for path in contents:gmatch("require%(.(.-).%)") do
         local fullPath = path..".lua"
-        if utils.tableHasValue(deps, fullPath) then goto continue end
+        if utils.tableHasValue(DOWNLOADED_DEPS, fullPath) then goto continue end
 
-        table.insert(deps, fullPath)
+        table.insert(DOWNLOADED_DEPS, fullPath)
 
         downloadFileAndDeps(fullPath)
 
@@ -368,7 +368,7 @@ local function getFileDeps(contents)
     end
 end
 
-local function polyfilDir(contents)
+local function polyfillDir(contents)
     return contents:gsub("require%((.)", "require(%1"..DIR)
 end
 
@@ -379,7 +379,7 @@ function downloadFileAndDeps(path)
 
     getFileDeps(programContents)
 
-    programContents = polyfilDir(programContents)
+    programContents = polyfillDir(programContents)
     local file = fs.open(DIR..path, "w")
     file.write(programContents)
     file.close()
