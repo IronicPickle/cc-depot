@@ -89,8 +89,17 @@ local function printProgramList(programList)
 
     local headerHeight = 4
 
-    TERMINAL:fillBackground(colors.lightBlue)
-    TERMINAL:drawBox(1, 1, TERMINAL.output.width, headerHeight, true, colors.blue)
+    TERMINAL:fillBackground({
+        bgColor=colors.lightBlue
+    })
+    TERMINAL:drawBox({
+        x=1,
+        y=1,
+        width=TERMINAL.output.width,
+        height=headerHeight,
+        filled=true,
+        bgColor=colors.blue
+    })
 
     TERMINAL:write("CC Depot - Installation", {
         x=0,
@@ -155,8 +164,17 @@ local function printConfigOption(option, error)
 
     local headerHeight = 4
 
-    TERMINAL:fillBackground(colors.lightBlue)
-    TERMINAL:drawBox(1, 1, TERMINAL.output.width, headerHeight, true, colors.blue)
+    TERMINAL:fillBackground({
+        bgColor=colors.lightBlue
+    })
+    TERMINAL:drawBox({
+        x=1,
+        y=1,
+        width=TERMINAL.output.width,
+        height=headerHeight,
+        filled=true,
+        bgColor=colors.blue
+    })
 
     TERMINAL:write("CC Depot - Installation", {
         x=0,
