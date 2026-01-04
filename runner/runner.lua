@@ -4,8 +4,8 @@ local REPO_API_URL = "$REPO_API_URL$"
 local GITHUB_ACCESS_TOKEN = "$GITHUB_ACCESS_TOKEN$"
 
 -- Config
-local utils = require(DIR.."/lib/utils")
-local Monitor = require(DIR.."/lib/peripherals/Monitor")
+local utils = require("/lib/utils")
+local Monitor = require("/lib/peripherals/Monitor")
 
 -- Peripherals
 local TERMINAL = Monitor:new(term.current())
