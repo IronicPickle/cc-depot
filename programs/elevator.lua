@@ -3,6 +3,7 @@ local Monitor = require("/lib/peripherals/Monitor")
 local Window = require("/lib/Window")
 local StateManager = require("/lib/StateManager")
 local network = require("/lib/network")
+local utils = require("/lib/utils")
 
 -- Config
 local CONFIG = textutils.unserialiseJSON(arg[1])
@@ -75,12 +76,12 @@ local function drawFloors()
     for i, floor in ipairs(FLOORS) do
         local y = 4 + i
         if(i == STATE_MANAGER.state.floor) then
-            -- BODY:fillBackground(colors.blue)
+            BODY.output.setBackgroundColor(colors.blue)
             BODY:drawBox({
                 x=1,
                 y=y,
                 width=BODY.output.width,
-                height=y,
+                height=1,
                 filled=true,
                 bgColor=colors.blue
             })
@@ -90,7 +91,7 @@ local function drawFloors()
             y=y,
             align="left"
         })
-        -- winMain.setBackgroundColor(winMain.bg)
+        -- BODY.output.setBackgroundColor(BODY.output.bg)
     end
 end
 
