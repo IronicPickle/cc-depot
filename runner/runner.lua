@@ -447,7 +447,7 @@ local function runProgram(config)
 
     print("  - Running program: "..programPath)
 
-    shell.execute(programPath, textutils.serialiseJSON(config.configValues, config.dir))
+    shell.execute(programPath, textutils.serialiseJSON(config.configValues), config.dir)
 end
 
 local function runWrapper(config)
