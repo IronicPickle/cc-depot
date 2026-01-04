@@ -13,7 +13,9 @@ function Window:new(output, options)
     win.x = x
     win.y = y
 
-    return Monitor:new(win)
+    return Monitor:new(win, {
+        textScale=options.textScale
+    })
 end
 
 return Window

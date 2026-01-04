@@ -1,11 +1,12 @@
-local Monitor = require("/lib/peripherals/Monitor")
-local Window = require("/lib/Window")
+local Monitor = require("/cc_depot/lib/peripherals/Monitor")
+local Window = require("/cc_depot/lib/Window")
 
+if not peripheral.find("monitor") then error("An attached monitor is required") end
+if not peripheral.find("modem") then error("An attached modem is required") end
 
-if not peripheral.isPresent("monitor") then error("An attached monitor is required") end
-if not peripheral.isPresent("modem") then error("An attached modem is required") end
-
-local MONITOR = Monitor:new(peripheral.find("monitor"))
+local MONITOR = Monitor:new(peripheral.find("monitor"), {
+    textScale=0.5
+})
 
 function start()
     MONITOR.output.clear()
@@ -16,6 +17,5 @@ function start()
     })
 
 end
-
 
 start()

@@ -1,6 +1,10 @@
 local Monitor = {}
 
-function Monitor:new(output)
+function Monitor:new(output, options)
+    local textScale = options.textScale or 1
+
+    output.setTextScale(textScale)
+
     local resX, resY = output.getSize()
     output.width = resX
     output.height = resY
