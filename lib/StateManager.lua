@@ -2,14 +2,14 @@ local StateManager = {}
 
 local function write(path, state)
     local file = fs.open(path, "w")
-    file.write(textutils.unserialiseJSON(state))
+    file.write(textutils.serialiseJSON(state))
     file.close()
 end
 
 local function read(path)
     if not fs.exists(path) then return end
     local file = fs.open(path, "r")
-    local state = textutils.serialiseJSON(file.readAll())
+    local state = textutils.unserialiseJSON(file.readAll())
     file.close()
     return state
 end
@@ -29,7 +29,7 @@ function StateManager:new(options)
 
     if existingState then
         self.state = existingState
-    else
+    elseif default then
         self.state = default
         write(path, default)
     end
