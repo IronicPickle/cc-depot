@@ -13,6 +13,8 @@ function Monitor:new(output, options)
     output.width = resX
     output.height = resY
 
+    output.bgColor = output.getBackgroundColor()
+
     local o = { output = output }
     setmetatable(o, self)
     self.__index = self
@@ -90,10 +92,19 @@ function Monitor:write(text, options)
     
 end
 
-function Monitor:drawBox(x, y, dx, dy, filled, bgColor)
+function Monitor:drawBox(options)
     local prevBgColor = self.output.getBackgroundColor()
-    bgColor = bgColor or prevBgColor
-    
+
+    local x = options.x
+    local y = options.y
+    local width = options.width
+    local height = options.height
+    local filled = options.filled or true
+    local bgColor = options.bgColor or prevBgColor
+
+    local dx = x + width
+    local dy = y + height
+
     term.redirect(self.output)
     if filled then
         paintutils.drawFilledBox(
@@ -108,7 +119,18 @@ function Monitor:drawBox(x, y, dx, dy, filled, bgColor)
     self.output.setBackgroundColor(prevBgColor)
 end
 
-function Monitor:createButton(x, y, paddingX, paddingY, align, bgColor, textColor, text, onClick, disabled)
+function Monitor:createButton(options)
+    local x = options.x
+    local y = options.y
+    local paddingX = options.paddingX or 0
+    local paddingY = options.paddingY or 0
+    local align = options.align or "left"
+    local bgColor = options.bgColor
+    local textColor = options.textColor
+    local text = options.text or "Button"
+    local onClick = options.onClick
+    local disabled = options.disabled
+
     local len = text:len()
     
     if align == "center" then
@@ -119,11 +141,27 @@ function Monitor:createButton(x, y, paddingX, paddingY, align, bgColor, textColo
         x = x
     end
 
-    local dx = x + len + (paddingX * 2) - 1
-    local dy = y + (paddingY * 2)
+    local width = len + (paddingX * 2) - 1
+    local height = (paddingY * 2)
 
-    self:drawBox(self.output, x, y, dx, dy, true, bgColor)
-    self:write(self.output, text, x + paddingX, y + paddingY, nil, textColor, bgColor)
+    local dx = x + width
+    local dy = y + height
+
+    self:drawBox({
+        x=x,
+        y=y,
+        width=width,
+        height=height,
+        filled=true,
+        bgColor=bgColor
+    })
+    self:write({
+        text=text,
+        x=x + paddingX,
+        y=y + paddingY,
+        textColor=textColor,
+        bgColor=bgColor
+    })
 
     while true do
         local event, p1, p2, p3, p4, p5 = os.pullEvent()
@@ -131,8 +169,8 @@ function Monitor:createButton(x, y, paddingX, paddingY, align, bgColor, textColo
         local isTouch = (event == "monitor_touch")
 
         if isTouch then
-            local touchX = p2 - self.output.posX + 1
-            local touchY = p3 - self.output.posY + 1
+            local touchX = p2 - self.output.x + 1
+            local touchY = p3 - self.output.y + 1
 
             if touchX >= x and touchY >= y and touchX <= dx and touchY <= dy and not disabled then
                 if onClick() then break end
@@ -141,26 +179,49 @@ function Monitor:createButton(x, y, paddingX, paddingY, align, bgColor, textColo
     end
 end
 
-function Monitor:fillBackground(bgColor)
-    local prevBgColor = self.output.getBackgroundColor()
+function Monitor:fillBackground(options)
+    local bgColor = options.bgColor or self.output.getBackgroundColor()
 
-    self.output.bg = bgColor
-    self.output.setBackgroundColor(self.output.bg)
+    self.output.bgColor = bgColor
+    self.output.setBackgroundColor(self.output.bgColor)
   
-    self:drawBox(
-        1, 1, self.output.width, self.output.height,
-        true
-    )
-
+    self:drawBox({
+        x=1,
+        y=1,
+        width=self.output.width,
+        height=self.output.height,
+        filled=true
+    })
 end
 
-function Monitor:createModal(title, bgColor, textColor, disabledColor, cancelButtonText, submitButtonText, buttons)
-    self:fillBackground(bgColor)
-    self:write(title, 0, 3, "center", textColor)
+function Monitor:createModal(options)
+    local Window = require("/lib/Window")
 
-    local modalInner = setup.setupWindow(
-        self.output, 2, 6, self.output.width - 2, self.output.height - 10
-    )
+    local title = options.title or "Unnamed Modal"
+    local bgColor = options.bgColor
+    local textColor = options.textColor
+    local disabledColor = options.disabledColor
+    local cancelButtonText = options.cancelButtonText or "Cancel"
+    local submitButtonText = options.submitButtonText or "Submit"
+    local buttons = options.buttons
+
+    self:fillBackground({
+        bgColor=bgColor
+    })
+    self:write({
+        text=title,
+        x=0,
+        y=3,
+        align="center",
+        textColor=textColor
+    })
+
+    local INNER = Window:new(self.output, {
+        x=2,
+        y=6,
+        width=self.output.width - 2,
+        height=self.output.height - 10
+    })
 
     local action = nil
 
@@ -169,16 +230,37 @@ function Monitor:createModal(title, bgColor, textColor, disabledColor, cancelBut
     if not awaitButtonInput then
         awaitButtonInput = function(disabled)
             function createCancelButton()
-                self:createButton(self.output, -6, self.output.height - 3, 2, 1, "center", bgColor, textColor, cancelButtonText or "Cancel", function ()
-                action = "cancel"
-                return true
-                end)
+                self:createButton({
+                    x=-6,
+                    y=self.output.height - 3,
+                    paddingX=2,
+                    paddingY=1,
+                    align="center",
+                    bgColor=bgColor,
+                    textColor=textColor,
+                    text=cancelButtonText,
+                    onClick=function ()
+                        action = "cancel"
+                        return true
+                    end
+                })
             end
             function createSubmitButton()
-                self:createButton(self.output, 6, self.output.height - 3, 2, 1, "center", disabled and disabledColor or textColor, bgColor, submitButtonText or "Create", function ()
-                action = "submit"
-                return true
-                end, disabled)
+                self:createButton({
+                    x=6,
+                    y=self.output.height - 3,
+                    paddingX=2,
+                    paddingY=1,
+                    align="center",
+                    bgColor=bgColor,
+                    textColor=disabled and disabledColor or textColor,
+                    text=submitButtonText,
+                    disabled=disabled,
+                    onClick=function ()
+                        action = "submit"
+                        return true
+                    end
+                })
             end
             
             parallel.waitForAny(createCancelButton, createSubmitButton)
@@ -187,7 +269,7 @@ function Monitor:createModal(title, bgColor, textColor, disabledColor, cancelBut
         end
     end
 
-    return modalInner, awaitButtonInput
+    return INNER, awaitButtonInput
 end
 
 return Monitor
