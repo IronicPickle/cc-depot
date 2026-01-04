@@ -1,6 +1,7 @@
 -- Deps
 local Monitor = require("/lib/peripherals/Monitor")
 local Window = require("/lib/Window")
+local StateManager = require("/lib/StateManager")
 
 -- Config
 local CONFIG = textutils.unserialiseJSON(arg[1])
@@ -16,9 +17,13 @@ local MODEM = peripheral.find("modem")
 local SPEAKER = peripheral.find("speaker")
 
 -- Globals
-local STATE_DATA = "closed"
-local DEFAULT_DATA = "closed"
-local STATE = STATE_DATA or DEFAULT_DATA
+local STATE_MANAGER = StateManager:new({
+    dir=CONFIG.dir,
+    name="door",
+    default={
+        mode="closed"
+    }
+})
 
 -- Windows
 local HEADER_HEIGHT = 4
@@ -65,7 +70,7 @@ local function drawHeader(timeLeft)
     }
     
     HEADER:fillBackground({
-        bgColor=bgColors[STATE]
+        bgColor=bgColors[STATE_MANAGER.state.mode]
     })
     HEADER:drawBox({
         x=1,
@@ -83,7 +88,7 @@ local function drawHeader(timeLeft)
         closing = "Sealing"
     }
     
-    HEADER:write(msgs[STATE], {
+    HEADER:write(msgs[STATE_MANAGER.state.mode], {
         x=0,
         y=2,
         align="center"
@@ -98,7 +103,7 @@ local function drawFooter()
         closing = colors.green
     }
     FOOTER:fillBackground({
-        bgColor=bgColors[STATE]
+        bgColor=bgColors[STATE_MANAGER.state.mode]
     })
 
     FOOTER:drawBox({
@@ -117,7 +122,7 @@ local function drawFooter()
         closing = "Please Wait"
     }
     
-    FOOTER:write(msgs[STATE], {
+    FOOTER:write(msgs[STATE_MANAGER.state.mode], {
         x=0,
         y=3,
         align="center"
@@ -132,10 +137,10 @@ local function drawBody(timeLeft, timeMax)
         closing = {colors.red, colors.green}
     }
     BODY:fillBackground({
-        bgColor=bgColors[STATE][1]
+        bgColor=bgColors[STATE_MANAGER.state.mode][1]
     })
 
-    if(STATE ~= "closed") then
+    if(STATE_MANAGER.state.mode ~= "closed") then
         local single = MONITOR.output.width / timeMax
         local width = timeLeft * single
         
@@ -145,7 +150,7 @@ local function drawBody(timeLeft, timeMax)
             width=width,
             height=BODY.output.height,
             filled=true,
-            bgColor=bgColors[STATE][2]
+            bgColor=bgColors[STATE_MANAGER.state.mode][2]
         })
     end
 end
@@ -158,7 +163,9 @@ local function close(isInitial)
             1, 0.7
         )
     end
-    STATE = "closing"
+    STATE_MANAGER.save({
+        mode="closing"
+    })
     updateState()
     drawHeader()
     drawFooter()
@@ -166,7 +173,9 @@ local function close(isInitial)
         drawBody(i, CONFIG.closeTime)
         os.sleep(0.1)
     end
-    STATE = "closed"
+    STATE_MANAGER.save({
+        mode="closed"
+    })
     updateState()
     drawHeader()
     drawFooter()
@@ -183,7 +192,9 @@ local function open(isInitial)
                     1, 1
                 )
             end
-            STATE = "opening"
+            STATE_MANAGER.save({
+                mode="opening"
+            })
             updateState()
             drawHeader()
             drawFooter()
@@ -191,7 +202,9 @@ local function open(isInitial)
                 drawBody(i, CONFIG.openTime)
                 os.sleep(0.1)
             end
-            STATE = "open"
+            STATE_MANAGER.save({
+                mode="open"
+            })
             updateState()
             drawFooter()
             for i = CONFIG.delay, 0, -0.1 do
@@ -216,12 +229,12 @@ function await()
         if(isTouch) then
             if MODEM then
                 MODEM.transmit(CONFIG.channel, CONFIG.channel,
-                    { type = STATE }
+                    { type = STATE_MANAGER.state.mode }
                 )
             end
-            if(STATE == "open") then
+            if(STATE_MANAGER.state.mode == "open") then
                 break
-            elseif(STATE == "closed") then
+            elseif(STATE_MANAGER.state.mode == "closed") then
                 open()
             end
         elseif(isModemMessage) then
@@ -250,7 +263,7 @@ local function start()
     end
     
     parallel.waitForAll(await, function ()
-        if(STATE == "open" or STATE == "opening") then
+        if(STATE_MANAGER.state.mode == "open" or STATE_MANAGER.state.mode == "opening") then
             open(true)
         else
             close(true)

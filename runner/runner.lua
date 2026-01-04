@@ -321,6 +321,7 @@ local function startConfiguration(programList, existingValues)
         name=selectedProgram.name,
         label=selectedProgram.label,
         description=selectedProgram.description,
+        dir=DIR,
         configValues=configValues
     }
 
