@@ -236,7 +236,7 @@ local function promptForConfigOption(option)
 
         error = nil
 
-        local readValue = read(nil, nil, nil, tostring(value))
+        local readValue = read(nil, nil, nil, value ~= nil and tostring(value) or "")
 
         if #readValue == 0 and option.default ~= nil then
             value = tostring(option.default)
