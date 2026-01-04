@@ -47,6 +47,19 @@ function M.findInTable(tab, func)
   return nil
 end
 
+function M.joinTable(tab, joiner)
+  local str = ""
+  for i, value in ipairs(tab) do
+    if i == 1 then
+      str = str..value
+    else
+      str = str..joiner..value
+    end
+  end
+
+  return str
+end
+
 
 function M.urlEncode(url)
   if url == nil then
@@ -138,5 +151,3 @@ function M.stringSplit(input, seperator)
   end
   return stringSegments
 end
-
-return M
