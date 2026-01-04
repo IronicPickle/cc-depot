@@ -1,4 +1,57 @@
 {
   "label": "Door",
-  "description": "A basic door program"
+  "description": "A basic door program",
+  "config": [
+    {
+      "name": "doorName",
+      "label": "Door name",
+      "description": "A name for this door that will be visible on the attached monitor.",
+      "type": "string",
+      "default": "Unnamed"
+    },
+    {
+      "name": "channel",
+      "label": "Channel",
+      "description": "The channel all other computers controlling this door should communicate on.",
+      "type": "number",
+      "default": 10
+    },
+    {
+      "name": "redstoneOutputType",
+      "label": "Redstone Output Type",
+      "description": "The type of redstone signal the door should output.",
+      "type": "string",
+      "valid": ["switch", "button"],
+      "default": "switch"
+    },
+    {
+      "name": "redstoneOutputSide",
+      "label": "Redstone Output Side",
+      "description": "The side of the computer the redstone output should be emitted on.",
+      "type": "string",
+      "valid": ["bottom", "top", "back", "fron", "right", "left"],
+      "default": "back"
+    },
+    {
+      "name": "delay",
+      "label": "Delay",
+      "description": "The time in seconds the door should remain open for.",
+      "type": "number",
+      "default": 5
+    },
+    {
+      "name": "openTime",
+      "label": "Opening Time",
+      "description": "The time in seconds the door takes to open.",
+      "type": "number",
+      "default": 1
+    },
+    {
+      "name": "closeTime",
+      "label": "Closing Time",
+      "description": "The time in seconds the door takes to close.",
+      "type": "number",
+      "default": 1
+    }
+  ]
 }
