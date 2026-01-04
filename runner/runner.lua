@@ -124,6 +124,12 @@ local function printProgramList(programList)
 
     local bodyYOffset = headerHeight + 1
 
+    TERMINAL:write("", {
+        x=0,
+        y=bodyYOffset,
+        progressCursor=true
+    })
+
     for i, program in ipairs(programList) do
         local isSelected = i == SELECTED_PROGRAM_INDEX
 
@@ -131,11 +137,11 @@ local function printProgramList(programList)
 
         TERMINAL:write(programString, {
             x=0,
-            xPadding=3,
-            y=bodyYOffset + i,
+            xPadding=1,
             textColor=colors.black,
             bgColor=colors.lightBlue,
-            wrap=true
+            wrap=true,
+            progressCursor=true
         })
     end
 end
