@@ -176,6 +176,7 @@ local function printConfigOption(option, error)
     local bodyYOffset = headerHeight + 2
 
     local hasDefault = option.default ~= nil
+    local hasValid = option.valid ~= nil
     
     TERMINAL:write(option.label..(hasDefault and " [Default: "..option.default.."]" or ""), {
         x=0,
@@ -186,6 +187,17 @@ local function printConfigOption(option, error)
         progressCursor=true,
         wrap=true
     })
+    if hasValid then
+        TERMINAL:write("Valid: ("..utils.joinTable(option.valid, "| ")..")", {
+            x=0,
+            xPadding=3,
+            y=bodyYOffset,
+            textColor=colors.black,
+            bgColor=colors.lightBlue,
+            progressCursor=true,
+            wrap=true
+        })
+    end
     TERMINAL:write("| "..option.description, {
         x=0,
         xPadding=3,
@@ -224,7 +236,7 @@ local function promptForConfigOption(option)
 
         error = nil
 
-        local readValue = read(nil, nil, nil, value)
+        local readValue = read(nil, nil, nil, tostring(value))
 
         if #readValue == 0 and option.default ~= nil then
             value = tostring(option.default)
@@ -257,6 +269,14 @@ local function promptForConfigOption(option)
             value = value == "true"
         end
 
+        if option.valid then
+            local isValid = utils.tableHasValue(option.valid, value)
+            if not isValid then
+                error = "Must be one of the following values: ("..utils.joinTable(option.valid, ", ")..")"
+                goto continue
+            end
+        end
+
         if not error then break end
 
         ::continue::
@@ -272,8 +292,10 @@ local function startConfiguration(programList)
 
     local configValues = {}
 
-    for _, option in ipairs(selectedProgram.config) do
-        configValues[option.name] = promptForConfigOption(option)
+    if selectedProgram.config then
+        for _, option in ipairs(selectedProgram.config) do
+            configValues[option.name] = promptForConfigOption(option)
+        end
     end
 
     local config = {
