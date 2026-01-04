@@ -328,7 +328,7 @@ local function start()
         floorName = CONFIG.floorName,
     }
 
-    floor = { deviceData }
+    FLOORS = { deviceData }
 
     local joinOrCreate = function()
         network.joinOrCreate(CONFIG.channel, CONFIG.isHost, deviceData,
