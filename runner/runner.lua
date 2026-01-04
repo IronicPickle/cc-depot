@@ -384,7 +384,7 @@ local function getFileDeps(contents)
 end
 
 local function polyfillDir(contents)
-    return contents:gsub("=%s*require%((.)", "= require(%1"..DIR)
+    return contents:gsub("(require%(.)", "%1"..DIR)
 end
 
 function downloadFileAndDeps(path, polyfill)
