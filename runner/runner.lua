@@ -134,7 +134,8 @@ local function printProgramList(programList)
             xPadding=3,
             y=bodyYOffset + i,
             textColor=colors.black,
-            bgColor=colors.lightBlue
+            bgColor=colors.lightBlue,
+            wrap=true
         })
     end
 end
