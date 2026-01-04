@@ -1,6 +1,8 @@
 local Monitor = {}
 
 function Monitor:new(output, options)
+    if not options then options = {} end
+    
     local textScale = options.textScale or 1
 
     output.setTextScale(textScale)

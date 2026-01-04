@@ -3,6 +3,8 @@ local Monitor = require("/lib/peripherals/Monitor")
 local Window = {}
 
 function Window:new(output, options)
+    if not options then options = {} end
+
     local x = options.x or 1
     local y = options.y or 1
     local width = options.width or output.width
