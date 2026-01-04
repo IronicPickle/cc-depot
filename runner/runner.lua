@@ -1,13 +1,19 @@
+-- Deps
 local DIR = "$DIR$"
 local REPO_API_URL = "$REPO_API_URL$"
 local GITHUB_ACCESS_TOKEN = "$GITHUB_ACCESS_TOKEN$"
 
+-- Config
 local utils = require(DIR.."/lib/utils")
 local Monitor = require(DIR.."/lib/peripherals/Monitor")
 
+-- Peripherals
 local TERMINAL = Monitor:new(term.current())
+local MODEM = peripheral.find("modem")
 
+-- Globals
 local SELECTED_PROGRAM_INDEX = 1
+local RUNNER_UPDATE_CHANNEL = 79941
 
 local function fetchRepoContents(file)
     local res = http.get(REPO_API_URL.."/contents"..file, {
@@ -395,9 +401,24 @@ local function downloadFiles(config)
     downloadFileAndDeps(programPath)
 end
 
+local function openModem()
+    if MODEM then
+        MODEM.open(RUNNER_UPDATE_CHANNEL)
+        print("- Listening for remote commands on channel: "..RUNNER_UPDATE_CHANNEL)
+    end
+end
+
+local function closeModem()
+    if MODEM then
+        MODEM.close(RUNNER_UPDATE_CHANNEL)
+    end
+end
+
 local QUEUED_COMMAND = nil
 
 local function awaitCommand()
+    openModem()
+
     local ctrlHeld = false
 
     print("\n- Available commands:")
@@ -409,13 +430,17 @@ local function awaitCommand()
     print("  | Ctrl + D - Full system reset")
 
     while true do
-        local event, key = os.pullEvent()
+        local event, p1, _p2, _p3, p4 = os.pullEvent()
 
         if event == "key" then
+            local key = p1
+
             if key == keys.leftCtrl then
                 ctrlHeld = true
             end
         elseif event == "key_up" then
+            local key = p1
+
             if key == keys.leftCtrl then
                 ctrlHeld = false
             end
@@ -438,8 +463,21 @@ local function awaitCommand()
                     return
                 end
             end
+        elseif event == "modem_message" then
+            local message = textutils.unserialiseJSON(p4)
+            if not message or not message.type then goto continue end
+
+            if message.type == "RUNNER_COMMAND" then
+                if not message.command then goto continue end
+                QUEUED_COMMAND = message.command
+                return
+            end
         end
+
+        ::continue::
     end
+
+    closeModem()
 end
 
 local function runProgram(config)
@@ -476,6 +514,8 @@ local function downloadAndRun(config)
 end
 
 local function start()
+
+
     local config = getConfigValues()
 
     if not config then
