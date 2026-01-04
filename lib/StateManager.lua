@@ -39,7 +39,7 @@ end
 
 function StateManager:save(newState)
     self.state = newState
-    write(newState)
+    write(self.path, newState)
 end
 
 function StateManager:reset()
