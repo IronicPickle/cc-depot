@@ -25,7 +25,7 @@ function StateManager:new(options)
     setmetatable(o, self)
     self.__index = self
 
-    local existingState = read()
+    local existingState = read(path)
 
     if existingState then
         self.state = existingState
