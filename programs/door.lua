@@ -164,7 +164,7 @@ local function close(isInitial)
             1, 0.7
         )
     end
-    STATE_MANAGER.save({
+    STATE_MANAGER:save({
         mode="closing"
     })
     updateState()
@@ -174,7 +174,7 @@ local function close(isInitial)
         drawBody(i, CONFIG.closeTime)
         os.sleep(0.1)
     end
-    STATE_MANAGER.save({
+    STATE_MANAGER:save({
         mode="closed"
     })
     updateState()
@@ -193,7 +193,7 @@ local function open(isInitial)
                     1, 1
                 )
             end
-            STATE_MANAGER.save({
+            STATE_MANAGER:save({
                 mode="opening"
             })
             updateState()
@@ -203,7 +203,7 @@ local function open(isInitial)
                 drawBody(i, CONFIG.openTime)
                 os.sleep(0.1)
             end
-            STATE_MANAGER.save({
+            STATE_MANAGER:save({
                 mode="open"
             })
             updateState()
