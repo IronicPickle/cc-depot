@@ -25,6 +25,13 @@ end
 function Monitor:write(text, options)
     local cursorX, cursorY = term.getCursorPos()
 
+    if self.output.x then
+        cursorX = cursorX - (self.output.x - 1)
+    end
+    if self.output.y then
+        cursorY = cursorY - (self.output.y - 1)
+    end
+
     local prevTextColor = self.output.getTextColor()
     local prevBgColor = self.output.getBackgroundColor()
 
