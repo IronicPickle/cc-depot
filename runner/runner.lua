@@ -411,7 +411,7 @@ end
 local function downloadFiles(config, downloadRunner)
     local programPath = "/programs/"..config.name..".lua"
 
-    print("- Downloading program and deps for"..config.name)
+    print("- Downloading program and deps for "..config.name)
 
     DOWNLOADED_DEPS = {}
 
