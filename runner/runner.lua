@@ -13,7 +13,7 @@ local MODEM = peripheral.find("modem")
 
 -- Globals
 local SELECTED_PROGRAM_INDEX = 1
-local RUNNER_UPDATE_CHANNEL = 79941
+local RUNNER_UPDATE_CHANNEL = 59941
 
 local function fetchRepoContents(file)
     local res = http.get(REPO_API_URL.."/contents"..file, {
