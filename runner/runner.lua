@@ -423,7 +423,7 @@ end
 
 local QUEUED_COMMAND = nil
 
-local function awaitCommand()
+local function awaitCommand(config)
     openModem()
 
     local ctrlHeld = false
@@ -476,6 +476,7 @@ local function awaitCommand()
 
             if message.type == "RUNNER_COMMAND" then
                 if not message.command then goto continue end
+                if message.program and message.program ~= config.name then goto continue end
                 QUEUED_COMMAND = message.command
                 return
             end
@@ -502,7 +503,11 @@ local function runWrapper(config)
         runProgram(config)
     end
 
-    parallel.waitForAny(run, awaitCommand)
+    local function await()
+        awaitCommand(config)
+    end
+
+    parallel.waitForAny(run, await)
 end
 
 local function downloadAndRun(config)
