@@ -576,7 +576,7 @@ local function start()
                 
                 checkRepoReachable()
 
-                downloadFiles(config)
+                downloadFiles(config, true)
 
                 print("- Rebooting in 3 seconds...")
                 os.sleep(3)
