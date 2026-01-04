@@ -59,11 +59,6 @@ local function outputToRedstone(rsState)
     end
 end
 
-
-local function updateState()
-    -- stateHandler.updateState("door", state)
-end
-
 local function drawHeader(timeLeft)
     local bgColors = {
         open = colors.green,
@@ -169,7 +164,6 @@ local function close(isInitial)
     STATE_MANAGER:save({
         mode="closing"
     })
-    updateState()
     drawHeader()
     drawFooter()
     for i = CONFIG.closeTime, 0, -0.1 do
@@ -179,7 +173,6 @@ local function close(isInitial)
     STATE_MANAGER:save({
         mode="closed"
     })
-    updateState()
     drawHeader()
     drawFooter()
     drawBody()
@@ -198,7 +191,6 @@ local function open(isInitial)
             STATE_MANAGER:save({
                 mode="opening"
             })
-            updateState()
             drawHeader()
             drawFooter()
             for i = CONFIG.openTime, 0, -0.1 do
@@ -208,7 +200,6 @@ local function open(isInitial)
             STATE_MANAGER:save({
                 mode="open"
             })
-            updateState()
             drawFooter()
             for i = CONFIG.delay, 0, -0.1 do
                 drawHeader(math.floor(i))
