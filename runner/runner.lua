@@ -476,7 +476,7 @@ local function awaitCommand(config)
 
             if message.type == "RUNNER_COMMAND" then
                 if not message.command then goto continue end
-                if message.program and message.program ~= config.name then goto continue end
+                if message.program ~= "all" and message.program ~= config.name then goto continue end
                 QUEUED_COMMAND = message.command
                 return
             end
@@ -526,8 +526,6 @@ local function downloadAndRun(config)
 end
 
 local function start()
-
-
     local config = getConfigValues()
 
     if not config then
