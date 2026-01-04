@@ -188,7 +188,7 @@ local function printConfigOption(option, error)
         wrap=true
     })
     if hasValid then
-        TERMINAL:write("Valid: ("..utils.joinTable(option.valid, "| ")..")", {
+        TERMINAL:write("Valid: ("..utils.joinTable(option.valid, " | ")..")", {
             x=0,
             xPadding=3,
             y=bodyYOffset,
