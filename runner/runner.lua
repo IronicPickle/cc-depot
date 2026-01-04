@@ -390,6 +390,8 @@ end
 function downloadFileAndDeps(path)
     print("  - Downloading "..path)
 
+    DOWNLOADED_DEPS = {}
+
     local programContents = getFileFromRepo(path)
 
     getFileDeps(programContents)
