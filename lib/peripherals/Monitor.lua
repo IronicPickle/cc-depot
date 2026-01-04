@@ -49,15 +49,19 @@ function Monitor:write(text, options)
     if shouldWrap and wrap then
         outputText = ""
 
+        local startPadding = text:match("^%s+") or ""
+        local endPadding = text:match("%s+$") or ""
+
         for subString in text:gmatch("([^%s]+)") do
-            term.setTextColor(colors.white)
             local newOutputText = #outputText == 0 and subString or outputText.." "..subString
             if #newOutputText > availableWidth then break end
             outputText = newOutputText
         end
 
+        outputText = startPadding..outputText..endPadding
+
         if #text > #outputText then
-            overflowText = text:sub(#outputText + 2)
+            overflowText = text:sub(#outputText + 1):gsub("^%s", "")
         end
     end
 
@@ -84,7 +88,8 @@ function Monitor:write(text, options)
             align=options.align,
             textColor=options.textColor,
             bgColor=options.bgColor,
-            progressCursor=options.progressCursor
+            progressCursor=options.progressCursor,
+            wrap=true
         })
     else
         self.output.setCursorPos(x + text:len(), progressCursor and y + 1 or y)
