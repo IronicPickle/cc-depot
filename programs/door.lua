@@ -3,7 +3,7 @@ local Monitor = require("/lib/peripherals/Monitor")
 local Window = require("/lib/Window")
 
 -- Config
-local CONFIG = textutils.serialiseJSON(arg[1])
+local CONFIG = textutils.unserialiseJSON(arg[1])
 
 -- Peripherals
 if not peripheral.find("monitor") then error("An attached monitor is required") end
@@ -33,7 +33,7 @@ local HEADER = Window:new(MONITOR.output, {
 local BODY = Window:new(MONITOR.output, {
     x=1,
     y=HEADER_HEIGHT + 1,
-    height=FOOTER_HEIGHT
+    height=BODY_HEIGHT
 })
 local FOOTER = Window:new(MONITOR.output, {
     x=1,
@@ -79,12 +79,11 @@ local function drawHeader(timeLeft)
     local msgs = {
         open = "Sealing in: " .. timeLeft,
         opening = "Opening",
-        closed = name,
+        closed = CONFIG.doorName,
         closing = "Sealing"
     }
     
-    HEADER:write({
-        text=msgs[STATE],
+    HEADER:write(msgs[STATE], {
         x=0,
         y=2,
         align="center"
@@ -98,7 +97,9 @@ local function drawFooter()
         closed = colors.red,
         closing = colors.green
     }
-    FOOTER:fillBackground(bgColors[STATE])
+    FOOTER:fillBackground({
+        bgColor=bgColors[STATE]
+    })
 
     FOOTER:drawBox({
         x=1,
@@ -116,8 +117,7 @@ local function drawFooter()
         closing = "Please Wait"
     }
     
-    FOOTER:write({
-        text=msgs[STATE],
+    FOOTER:write(msgs[STATE], {
         x=0,
         y=3,
         align="center"
@@ -131,10 +131,12 @@ local function drawBody(timeLeft, timeMax)
         closed = {colors.red, colors.green},
         closing = {colors.red, colors.green}
     }
-    BODY:fillBackground(bgColors[STATE][1])
+    BODY:fillBackground({
+        bgColor=bgColors[STATE][1]
+    })
 
     if(STATE ~= "closed") then
-        local single = monitor.x / timeMax
+        local single = MONITOR.output.width / timeMax
         local width = timeLeft * single
         
         BODY:drawBox({
