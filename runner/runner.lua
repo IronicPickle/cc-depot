@@ -387,10 +387,14 @@ local function polyfillDir(contents)
     return contents:gsub("require%((.)", "require(%1"..DIR)
 end
 
-function downloadFileAndDeps(path)
+function downloadFileAndDeps(path, polyfill)
     print("  - Downloading "..path)
 
     local programContents = getFileFromRepo(path)
+
+    if polyfill then
+        programContents = polyfill(programContents)
+    end
 
     getFileDeps(programContents)
 
@@ -405,7 +409,13 @@ local function downloadRunnerFiles()
 
     print("- Downloading runner and deps")
 
-    downloadFileAndDeps(programPath)
+    downloadFileAndDeps(programPath, function (content)
+        content = content:gsub("%$DIR%$", DIR)
+        content = content:gsub("%$REPO_API_URL%$", REPO_API_URL)
+        content = content:gsub("%$GITHUB_ACCESS_TOKEN%$", GITHUB_ACCESS_TOKEN)
+
+        return content
+    end)
 end
 
 local function downloadFiles(config, downloadRunner)
