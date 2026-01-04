@@ -156,7 +156,7 @@ function await()
         
         if(isTouch) then
             MODEM.transmit(CONFIG.channel, CONFIG.channel,
-                { type = STATE_MANAGER.state.mode }
+                { type = "/toggle/"..STATE_MANAGER.state.mode }
             )
             if(STATE_MANAGER.state.mode == "on") then
                 off()
@@ -165,9 +165,9 @@ function await()
             end
         elseif(isModemMessage) then
             local body = p4
-            if(body.type == "on") then
+            if(body.type == "/toggle/on") then
                 off()
-            elseif(body.type == "off") then
+            elseif(body.type == "/toggle/off") then
                 on()
             end
         end

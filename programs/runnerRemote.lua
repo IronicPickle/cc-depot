@@ -210,7 +210,7 @@ end
 local function sendRemoteCommand()
     MODEM.transmit(RUNNER_UPDATE_CHANNEL, RUNNER_UPDATE_CHANNEL,
         {
-            type="RUNNER_COMMAND",
+            type="/runner/command",
             command=QUEUED_COMMAND,
             program=QUEUED_PROGRAM
         }

@@ -223,7 +223,7 @@ function await()
         if(isTouch) then
             if MODEM then
                 MODEM.transmit(CONFIG.channel, CONFIG.channel,
-                    { type = STATE_MANAGER.state.mode }
+                    { type = "/door/"..STATE_MANAGER.state.mode }
                 )
             end
             if(STATE_MANAGER.state.mode == "open") then
@@ -233,9 +233,9 @@ function await()
             end
         elseif(isModemMessage) then
             local body = p4
-            if(body.type == "open") then
+            if(body.type == "/door/open") then
                 break
-            elseif(body.type == "closed") then
+            elseif(body.type == "/door/closed") then
                 open()
             end
         end

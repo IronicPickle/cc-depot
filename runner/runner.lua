@@ -473,14 +473,14 @@ local function awaitCommand(config)
                 end
             end
         elseif event == "modem_message" then
-            local message = p4
-            if not message or not message.type then goto continue end
+            local body = p4
+            if not body or not body.type then goto continue end
 
-            if message.type == "RUNNER_COMMAND" then
+            if body.type == "/runner/command" then
                 if config.name == "runnerRemote" then goto continue end
-                if not message.command then goto continue end
-                if message.program ~= "all" and message.program ~= config.name then goto continue end
-                QUEUED_COMMAND = message.command
+                if not body.command then goto continue end
+                if body.program ~= "all" and body.program ~= config.name then goto continue end
+                QUEUED_COMMAND = body.command
                 return
             end
         end
