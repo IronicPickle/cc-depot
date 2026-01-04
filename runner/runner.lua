@@ -90,7 +90,7 @@ local function printProgramList(programList)
     local headerHeight = 4
 
     TERMINAL:fillBackground(colors.lightBlue)
-    TERMINAL:drawBox(1, 1, TERMINAL.monitor.x, headerHeight, true, colors.blue)
+    TERMINAL:drawBox(1, 1, TERMINAL.output.width, headerHeight, true, colors.blue)
 
     TERMINAL:write("CC Depot - Installation", {
         x=0,
@@ -156,7 +156,7 @@ local function printConfigOption(option, error)
     local headerHeight = 4
 
     TERMINAL:fillBackground(colors.lightBlue)
-    TERMINAL:drawBox(1, 1, TERMINAL.monitor.x, headerHeight, true, colors.blue)
+    TERMINAL:drawBox(1, 1, TERMINAL.output.width, headerHeight, true, colors.blue)
 
     TERMINAL:write("CC Depot - Installation", {
         x=0,
@@ -213,7 +213,7 @@ local function printConfigOption(option, error)
     })
 
     if error then
-        local cursorX, cursorY = TERMINAL.monitor.getCursorPos()
+        local cursorX, cursorY = TERMINAL.output.getCursorPos()
         term.setTextColor(colors.white)
         TERMINAL:write(error, {
             x=0,
@@ -223,7 +223,7 @@ local function printConfigOption(option, error)
             bgColor=colors.lightBlue,
             wrap=true
         })
-        TERMINAL.monitor.setCursorPos(cursorX, cursorY)
+        TERMINAL.output.setCursorPos(cursorX, cursorY)
     end
 end
 
@@ -441,10 +441,10 @@ local function runWrapper(config)
 end
 
 local function downloadAndRun(config)
-    TERMINAL.monitor.setBackgroundColor(colors.black)
-    TERMINAL.monitor.setTextColor(colors.white)
-    TERMINAL.monitor.clear()
-    TERMINAL.monitor.setCursorPos(1, 1)
+    TERMINAL.output.setBackgroundColor(colors.black)
+    TERMINAL.output.setTextColor(colors.white)
+    TERMINAL.output.clear()
+    TERMINAL.output.setCursorPos(1, 1)
 
     if not getIsProgramDownloaded(config) then
         checkRepoReachable()
