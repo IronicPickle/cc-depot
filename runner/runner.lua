@@ -371,8 +371,7 @@ end
 local DOWNLOADED_DEPS = {}
 
 local function getFileDeps(contents)
-    for path in contents:gmatch("require%(.(.-).%)") do
-    if not path:match("^/") then goto continue end
+    for path in contents:gmatch("=%s*require%(.(.-).%)") do
         local fullPath = path..".lua"
         if utils.tableHasValue(DOWNLOADED_DEPS, fullPath) then goto continue end
 
@@ -385,7 +384,7 @@ local function getFileDeps(contents)
 end
 
 local function polyfillDir(contents)
-    return contents:gsub("require%((.)", "require(%1"..DIR)
+    return contents:gsub("=%s*require%((.)", "= require(%1"..DIR)
 end
 
 function downloadFileAndDeps(path, polyfill)
