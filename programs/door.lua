@@ -48,6 +48,8 @@ local FOOTER = Window:new(MONITOR.output, {
 })
 
 local function outputToRedstone(rsState)
+    if CONFIG.redstoneOutputSide == nil then return end
+
     if(CONFIG.redstoneOutputType == "switch") then
         rs.setAnalogOutput(CONFIG.redstoneOutputSide, rsState and 15 or 0)
     else
