@@ -2,10 +2,12 @@ local Monitor = {}
 
 function Monitor:new(output, options)
     if not options then options = {} end
-    
+
     local textScale = options.textScale or 1
 
-    output.setTextScale(textScale)
+    if output.setTextScale then
+        output.setTextScale(textScale)
+    end
 
     local resX, resY = output.getSize()
     output.width = resX
