@@ -20,7 +20,8 @@
       "name": "string",
       "label": "string option",
       "description": "Test string option",
-      "type": "string"
+      "type": "string",
+      "valid": ["right", "left", "up", "down"]
     }
   ]
 }
