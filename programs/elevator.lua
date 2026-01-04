@@ -91,7 +91,7 @@ local function drawFloors()
             y=y,
             align="left"
         })
-        -- BODY.output.setBackgroundColor(BODY.output.bg)
+        BODY.output.setBackgroundColor(colors.cyan)
     end
 end
 
@@ -256,7 +256,7 @@ end
 local function moveTo(floorIndex)
     local floor = FLOORS[STATE_MANAGER.state.floor]
     DIRECTION = STATE_MANAGER.state.floor - floorIndex 
-    STATE_MANAGER.save({
+    STATE_MANAGER:save({
         floor=floorIndex
     })
     IS_MOVING = true
