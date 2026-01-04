@@ -151,3 +151,5 @@ function M.stringSplit(input, seperator)
   end
   return stringSegments
 end
+
+return M
