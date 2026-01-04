@@ -501,7 +501,11 @@ local function runWrapper(config)
     print("- Running wrapper")
 
     local function run()
-        runProgram(config)
+        while true do
+            runProgram(config)
+            print("! Program exited, restarting in 5 seconds...")
+            os.sleep(5)
+        end
     end
 
     local function await()
@@ -584,9 +588,6 @@ local function start()
 
                 config = runSetup()
             end
-        else
-            print("! Program exited, restarting in 5 seconds...")
-            os.sleep(5)
         end
     end
 end
