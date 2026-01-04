@@ -1,5 +1,5 @@
 local Monitor = require("/lib/peripherals/Monitor")
-local Window = require("/lib/peripherals/Window")
+local Window = require("/lib/Window")
 
 
 if not peripheral.isPresent("monitor") then error("An attached monitor is required") end
