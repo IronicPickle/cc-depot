@@ -155,9 +155,11 @@ function await()
         local isModemMessage = (event == "modem_message")
         
         if(isTouch) then
-            MODEM.transmit(CONFIG.channel, CONFIG.channel,
-                { type = "/toggle/"..STATE_MANAGER.state.mode }
-            )
+            if MODEM then
+                MODEM.transmit(CONFIG.channel, CONFIG.channel,
+                    { type = "/toggle/"..STATE_MANAGER.state.mode }
+                )
+            end
             if(STATE_MANAGER.state.mode == "on") then
                 off()
             elseif(STATE_MANAGER.state.mode == "off") then
@@ -176,7 +178,9 @@ end
 
 local function start()
     print("# Program Started")
-    MODEM.open(CONFIG.channel)
+    if MODEM then
+        MODEM.open(CONFIG.channel)
+    end
     
     drawHeader()
     drawFooter()
