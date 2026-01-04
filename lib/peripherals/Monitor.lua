@@ -102,8 +102,8 @@ function Monitor:drawBox(options)
     local filled = options.filled or true
     local bgColor = options.bgColor or prevBgColor
 
-    local dx = x + width
-    local dy = y + height
+    local dx = x + width - 1
+    local dy = y + height - 1
 
     term.redirect(self.output)
     if filled then
@@ -144,8 +144,8 @@ function Monitor:createButton(options)
     local width = len + (paddingX * 2) - 1
     local height = (paddingY * 2)
 
-    local dx = x + width
-    local dy = y + height
+    local dx = x + width - 1
+    local dy = y + height - 1
 
     self:drawBox({
         x=x,
