@@ -471,7 +471,7 @@ local function awaitCommand(config)
                 end
             end
         elseif event == "modem_message" then
-            local message = textutils.unserialiseJSON(p4)
+            local message = p4
             if not message or not message.type then goto continue end
 
             if message.type == "RUNNER_COMMAND" then
