@@ -475,6 +475,7 @@ local function awaitCommand(config)
             if not message or not message.type then goto continue end
 
             if message.type == "RUNNER_COMMAND" then
+                if config.name == "runnerRemote" then goto continue end
                 if not message.command then goto continue end
                 if message.program ~= "all" and message.program ~= config.name then goto continue end
                 QUEUED_COMMAND = message.command
