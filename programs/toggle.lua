@@ -28,7 +28,7 @@ local STATE_MANAGER = StateManager:new({
 
 -- Windows
 local HEADER_HEIGHT = 4
-local FOOTER_HEIGHT = Window.output.height - HEADER_HEIGHT
+local FOOTER_HEIGHT = MONITOR.output.height - HEADER_HEIGHT
 
 local HEADER = Window:new(MONITOR.output, {
     x=1,
