@@ -312,7 +312,7 @@ local function startConfiguration(programList, existingValues)
 
     if selectedProgram.config then
         for _, option in ipairs(selectedProgram.config) do
-            local existingValue = existingValues[option.name]
+            local existingValue = existingValues and existingValues[option.name] or nil
             configValues[option.name] = promptForConfigOption(option, existingValue)
         end
     end
