@@ -5,6 +5,7 @@ local StateManager = require("/lib/StateManager")
 
 -- Config
 local CONFIG = textutils.unserialiseJSON(arg[1])
+local DIR = arg[2]
 
 -- Peripherals
 if not peripheral.find("monitor") then error("An attached monitor is required") end
@@ -18,7 +19,7 @@ local SPEAKER = peripheral.find("speaker")
 
 -- Globals
 local STATE_MANAGER = StateManager:new({
-    dir=CONFIG.dir,
+    dir=DIR,
     name="door",
     default={
         mode="closed"

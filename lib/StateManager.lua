@@ -5,7 +5,7 @@ function StateManager:new(options)
     local name = options.name
     local default = options.default
 
-    local path = self.dir.."/"..self.name..".state.json"
+    local path = dir.."/"..name..".state.json"
 
     local o = { dir=dir, name=name, default=options.default, path=path }
     setmetatable(o, self)
