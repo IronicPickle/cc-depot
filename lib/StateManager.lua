@@ -25,7 +25,7 @@ end
 function StateManager:save(newState)
     self.state = newState
     local file = fs.open(self.path, "w")
-    file.write(textutils.serialiseJSON(newState))
+    file.write(textutils.unserialiseJSON(newState))
     file.close()
 end
 
@@ -36,7 +36,7 @@ end
 function StateManager:read()
     if not fs.exists(self.path) then return end
     local file = fs.open(self.path, "r")
-    local state = textutils.unserialiseJSON(file.readAll())
+    local state = textutils.serialiseJSON(file.readAll())
     file.close()
     return state
 end
