@@ -1,0 +1,55 @@
+{
+  "label": "Elevator",
+  "description": "Elevator control and interface",
+  "config": [
+    {
+      "name": "floorName",
+      "label": "Floor Name",
+      "description": "The name of the floor this computer is on.",
+      "type": "string",
+      "default": "Unnamed"
+    },
+    {
+      "name": "floorNumber",
+      "label": "Floor Number",
+      "description": "The number of the floor this computer is on.",
+      "type": "number",
+      "required": true
+    },
+    {
+      "name": "channel",
+      "label": "Channel",
+      "description": "The channel all other computers controlling this elevator should communicate on.",
+      "type": "number",
+      "default": 301
+    },
+    {
+      "name": "isHost",
+      "label": "Is Host",
+      "description": "Determines if this computer should act as the elevator's host. Only one computer per elevator should be host.",
+      "type": "boolean",
+      "default": false
+    },
+    {
+      "name": "destinationRedstoneOutputSide",
+      "label": "Destination Redstone Output Side",
+      "description": "The side of the computer that should be powered when this floor is the destination.",
+      "type": "string",
+      "valid": ["bottom", "top", "back", "fron", "right", "left"]
+    },
+    {
+      "name": "directionRedstoneOutputSide",
+      "label": "Direction Redstone Output Side",
+      "description": "The side of the computer that should be powered when the elevator is moving up.",
+      "type": "string",
+      "valid": ["bottom", "top", "back", "fron", "right", "left"]
+    },
+    {
+      "name": "movingRedstoneOutputSide",
+      "label": "Moving Redstone Output Side",
+      "description": "The side of the computer that should be powered when the elevator is moving.",
+      "type": "string",
+      "valid": ["bottom", "top", "back", "fron", "right", "left"]
+    }
+  ]
+}
