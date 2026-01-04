@@ -245,8 +245,8 @@ local function printConfigOption(option, error)
     end
 end
 
-local function promptForConfigOption(option)
-    local value = nil
+local function promptForConfigOption(option, existingValue)
+    local value = existingValue
     local error = nil
 
     while true do
@@ -303,7 +303,7 @@ local function promptForConfigOption(option)
     return value
 end
 
-local function startConfiguration(programList)
+local function startConfiguration(programList, existingValues)
     local selectedProgram = programList[SELECTED_PROGRAM_INDEX]
 
     term.clear()
@@ -312,7 +312,8 @@ local function startConfiguration(programList)
 
     if selectedProgram.config then
         for _, option in ipairs(selectedProgram.config) do
-            configValues[option.name] = promptForConfigOption(option)
+            local existingValue = existingValues[option.name]
+            configValues[option.name] = promptForConfigOption(option, existingValue)
         end
     end
 
@@ -523,7 +524,7 @@ local function start()
                     error("Couldn't find program metadata for reconfiguration")
                 end
 
-                config = startConfiguration(programList)
+                config = startConfiguration(programList, config.configValues)
             elseif QUEUED_COMMAND == "RESET" then
                 QUEUED_COMMAND = nil
 
