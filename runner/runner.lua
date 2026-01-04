@@ -372,6 +372,7 @@ local DOWNLOADED_DEPS = {}
 
 local function getFileDeps(contents)
     for path in contents:gmatch("require%(.(.-).%)") do
+    if not path:match("^/") then goto continue end
         local fullPath = path..".lua"
         if utils.tableHasValue(DOWNLOADED_DEPS, fullPath) then goto continue end
 
