@@ -400,14 +400,26 @@ function downloadFileAndDeps(path)
     file.close()
 end
 
-local function downloadFiles(config)
+local function downloadRunnerFiles()
+    local programPath = "/runner/runner.lua"
+
+    print("- Downloading runner and deps")
+
+    downloadFileAndDeps(programPath)
+end
+
+local function downloadFiles(config, downloadRunner)
     local programPath = "/programs/"..config.name..".lua"
 
-    print("- Downloading program and deps for")
+    print("- Downloading program and deps for"..program.name)
 
     DOWNLOADED_DEPS = {}
 
     downloadFileAndDeps(programPath)
+
+    if downloadRunner then
+        downloadRunnerFiles()
+    end
 end
 
 local function openModem()
@@ -565,6 +577,10 @@ local function start()
                 checkRepoReachable()
 
                 downloadFiles(config)
+
+                print("- Rebooting in 3 seconds...")
+                os.sleep(3)
+                os.reboot()
             elseif QUEUED_COMMAND == "CONFIGURE" then
                 QUEUED_COMMAND = nil
 
