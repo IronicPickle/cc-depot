@@ -1,0 +1,35 @@
+{
+  "label": "Toggle",
+  "description": "A basic redstone toggle program",
+  "config": [
+    {
+      "name": "toggleName",
+      "label": "Toggle name",
+      "description": "A name for this toggle that will be visible on the attached monitor.",
+      "type": "string",
+      "default": "Unnamed"
+    },
+    {
+      "name": "channel",
+      "label": "Channel",
+      "description": "The channel all other computers controlling this toggle should communicate on.",
+      "type": "number",
+      "default": 10
+    },
+    {
+      "name": "redstoneOutputType",
+      "label": "Redstone Output Type",
+      "description": "The type of redstone signal the toggle should output.",
+      "type": "string",
+      "valid": ["switch", "button"],
+      "default": "switch"
+    },
+    {
+      "name": "redstoneOutputSide",
+      "label": "Redstone Output Side",
+      "description": "The side of the computer the redstone output should be emitted on.",
+      "type": "string",
+      "valid": ["bottom", "top", "back", "fron", "right", "left"]
+    }
+  ]
+}
