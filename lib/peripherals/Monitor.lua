@@ -1,5 +1,3 @@
-local test = require("/lib/peripherals/test/test")
-
 local Monitor = {}
 
 function Monitor:new(monitor)
