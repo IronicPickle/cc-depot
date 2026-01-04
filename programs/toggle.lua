@@ -22,7 +22,7 @@ local STATE_MANAGER = StateManager:new({
     dir=DIR,
     name="toggle",
     default={
-        mode="closed"
+        mode="off"
     }
 })
 
@@ -73,7 +73,7 @@ local function drawHeader()
         bgColor=colors.white
     })
 
-    HEADER:write(msgs[STATE_MANAGER.state.mode], {
+    HEADER:write(CONFIG.toggleName, {
         x=0,
         y=2,
         align="center"
