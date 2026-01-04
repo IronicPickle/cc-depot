@@ -390,8 +390,6 @@ end
 function downloadFileAndDeps(path)
     print("  - Downloading "..path)
 
-    DOWNLOADED_DEPS = {}
-
     local programContents = getFileFromRepo(path)
 
     getFileDeps(programContents)
@@ -406,6 +404,8 @@ local function downloadFiles(config)
     local programPath = "/programs/"..config.name..".lua"
 
     print("- Downloading program and deps for")
+
+    DOWNLOADED_DEPS = {}
 
     downloadFileAndDeps(programPath)
 end
