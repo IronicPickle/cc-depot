@@ -209,7 +209,7 @@ local function printConfigOption(option, error)
     local hasDefault = option.default ~= nil
     local hasValid = option.valid ~= nil
     
-    TERMINAL:write(option.label..(hasDefault and " [Default: "..option.default.."]" or ""), {
+    TERMINAL:write(option.label..(hasDefault and " [Default: "..tostring(option.default).."]" or ""), {
         x=0,
         xPadding=3,
         y=bodyYOffset,
