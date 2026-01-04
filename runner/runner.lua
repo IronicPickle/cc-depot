@@ -523,7 +523,6 @@ end
 
 local function runWrapper(config)
     print("- Running wrapper")
-    print("TESt")
 
     local function run()
         while true do
