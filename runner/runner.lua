@@ -191,7 +191,6 @@ local function printConfigOption(option, error)
         TERMINAL:write("Valid: ("..utils.joinTable(option.valid, " | ")..")", {
             x=0,
             xPadding=3,
-            y=bodyYOffset,
             textColor=colors.black,
             bgColor=colors.lightBlue,
             progressCursor=true,
@@ -221,7 +220,8 @@ local function printConfigOption(option, error)
             y=cursorY + 2,
             xPadding=3,
             textColor=colors.red,
-            bgColor=colors.lightBlue
+            bgColor=colors.lightBlue,
+            wrap=true
         })
         TERMINAL.monitor.setCursorPos(cursorX, cursorY)
     end
