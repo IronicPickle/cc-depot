@@ -8,7 +8,9 @@ local utils = require("/lib/utils")
 local Monitor = require("/lib/peripherals/Monitor")
 
 -- Peripherals
-local TERMINAL = Monitor:new(term.current())
+local TERMINAL = Monitor:new(term.current(), {
+    textScale=0.5
+})
 local MODEM = peripheral.find("modem")
 
 -- Globals
