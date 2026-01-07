@@ -1,0 +1,13 @@
+{
+  "label": "Player Sensor Setup",
+  "description": "A utility required to setup the area of player sensor.",
+  "config": [
+    {
+      "name": "channel",
+      "label": "Setup Channel",
+      "description": "The channel used to communicate with the setup pocket computer.",
+      "type": "number",
+      "default": 7771
+    }
+  ]
+}

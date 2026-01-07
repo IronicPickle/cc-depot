@@ -1,0 +1,57 @@
+{
+  "label": "Player Sensor",
+  "description": "A sensor that emits redstone when players are in a configured area.",
+  "config": [
+    {
+      "name": "channel",
+      "label": "Channel",
+      "description": "The channel all other computers controlling this sensor should communicate on.",
+      "type": "number",
+      "default": 401
+    },
+    {
+      "name": "role",
+      "label": "Role",
+      "description": "Should this computer sense, emit or both?",
+      "type": "string",
+      "default": "both",
+      "valid": ["sense", "emit", "both"]
+    },
+    {
+      "name": "setupChannel",
+      "label": "Setup Channel",
+      "description": "The channel used to communicate with the setup pocket computer.",
+      "type": "number",
+      "default": 7771,
+      "show-if": {
+        "role": {
+          "equals": ["sense", "both"]
+        }
+      }
+    },
+    {
+      "name": "redstoneLingerDuration",
+      "label": "Redstone Linger Duration",
+      "description": "The time in seconds that the redstone output should remain powered after a player leaves the configured area.",
+      "type": "number",
+      "default": 5,
+      "show-if": {
+        "role": {
+          "equals": ["emit", "both"]
+        }
+      }
+    },
+    {
+      "name": "redstoneOutputSide",
+      "label": "Redstone Output Side",
+      "description": "The side of the computer the redstone output should be emitted on.",
+      "type": "string",
+      "valid": ["bottom", "top", "back", "fron", "right", "left"],
+      "show-if": {
+        "role": {
+          "equals": ["emit", "both"]
+        }
+      }
+    }
+  ]
+}
