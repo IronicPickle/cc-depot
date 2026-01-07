@@ -258,7 +258,7 @@ local function printConfigOption(option, error)
     end
 end
 
-local function promptForConfigOption(option, existingValue)
+local function promptForConfigOption(option, existingValues)
     local value = existingValue
     local error = nil
 
@@ -325,8 +325,19 @@ local function startConfiguration(programList, existingValues)
 
     if selectedProgram.config then
         for _, option in ipairs(selectedProgram.config) do
+            local conditionSets =  option["show-if"]
+            if conditionSets then
+                for optionName, conditions in pairs(conditionSets) do
+                    local optionValue = configValues[optionName]
+                    if conditions.equals and not utils.tableHasValue(conditions.equals, optionValue) then goto continue end
+                end
+            end
+
+
             local existingValue = existingValues and existingValues[option.name] or nil
             configValues[option.name] = promptForConfigOption(option, existingValue)
+
+            ::continue::
         end
     end
 
