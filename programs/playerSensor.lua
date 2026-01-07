@@ -6,9 +6,7 @@ local CONFIG = textutils.unserialiseJSON(arg[1])
 local DIR = arg[2]
 
 -- Peripherals
-if not peripheral.find("monitor") then error("An attached monitor is required") end
-
-local MONITOR = Monitor:new(peripheral.find("monitor"), {
+local TERMINAL = Monitor:new(term.current(), {
     textScale=0.5
 })
 
