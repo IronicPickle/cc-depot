@@ -17,6 +17,7 @@ local SPEAKER = peripheral.find("speaker")
 local PLAYER_DETECTOR = peripheral.find("playerDetector")
 
 if not peripheral.find("playerDetector") then error("An attached player detector is required for setup") end
+if not peripheral.find("modem") and CONFIG.role ~= "both" then error("An attached modem is required for '"..CONFIG.mode.."' mode.") end
 
 -- Globals
 local STATE_MANAGER = StateManager:new({
@@ -80,6 +81,23 @@ end
 local EMIT_FOR_SECONDS = -1
 
 local function startOperation()
+    local function resetLinger()
+        local isNewEmission = EMIT_FOR_SECONDS == -1
+        if isNewEmission and SPEAKER then
+            SPEAKER.playSound("block.lever.click", 3, 1.8)
+        end
+        print("| Resetting output linger.")
+        EMIT_FOR_SECONDS = CONFIG.redstoneLingerDuration
+    end
+
+    local function broadcast()
+        if not MODEM then return end
+
+        MODEM.transmit(CONFIG.channel, CONFIG.channel, {
+            type="/playerSensor/playersDetected"
+        })
+    end
+    
     local function sense()
         while true do
             for _, area in ipairs(STATE_MANAGER.state.areas) do
@@ -96,13 +114,9 @@ local function startOperation()
 
                 local players = PLAYER_DETECTOR.getPlayersInCoords(pos1, pos2)
                 if #players > 0 then
-                    local isNewEmission = EMIT_FOR_SECONDS == -1
-                    if isNewEmission and SPEAKER then
-                        SPEAKER.playSound("block.lever.click", 3, 1.8)
-                    end
                     print("- Player(s) in area: "..textutils.serialiseJSON(players))
-                    print("| Resetting output linger.")
-                    EMIT_FOR_SECONDS = CONFIG.redstoneLingerDuration
+                    broadcast()
+                    resetLinger()
                 end
             end
 
@@ -127,7 +141,23 @@ local function startOperation()
         end
     end
 
-    parallel.waitForAny(sense, emit)
+    local function listen()
+        if not MODEM then return end
+
+        MODEM.open(CONFIG.channel)
+
+        while true do
+            local event, _, _, _, body = os.pullEvent()
+
+            if event == "modem_message" then
+                if body.type == "/playerSensor/playersDetected" then
+                    resetLinger()
+                end
+            end
+        end
+    end
+
+    parallel.waitForAll(sense, emit, listen)
 end
 
 local function start()
