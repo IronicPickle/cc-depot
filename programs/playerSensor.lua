@@ -1,6 +1,6 @@
 -- Deps
 local StateManager = require("/lib/StateManager")
-local Monitor = require("/cc_depot/lib/peripherals/Monitor")
+local Monitor = require("/lib/peripherals/Monitor")
 
 -- Config
 -- Config

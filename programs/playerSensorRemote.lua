@@ -1,5 +1,5 @@
 -- Deps
-local Monitor = require("/cc_depot/lib/peripherals/Monitor")
+local Monitor = require("/lib/peripherals/Monitor")
 
 -- Config
 local CONFIG = textutils.unserialiseJSON(arg[1])
