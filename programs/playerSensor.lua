@@ -1,8 +1,8 @@
 -- Deps
 local StateManager = require("/lib/StateManager")
 local Monitor = require("/lib/peripherals/Monitor")
+local utils = require("/lib/utils")
 
--- Config
 -- Config
 local CONFIG = textutils.unserialiseJSON(arg[1])
 local DIR = arg[2]
@@ -16,7 +16,7 @@ local MODEM = peripheral.find("modem")
 local SPEAKER = peripheral.find("speaker")
 local PLAYER_DETECTOR = peripheral.find("playerDetector")
 
-    if not peripheral.find("playerDetector") then error("An attached player detector is required for setup") end
+if not peripheral.find("playerDetector") then error("An attached player detector is required for setup") end
 
 -- Globals
 local STATE_MANAGER = StateManager:new({
@@ -69,14 +69,65 @@ local function startSetup()
 
         ::continue::
     end
-
-
-
-    
 end
 
-local function startOperation()
+local function outputToRedstone(rsState)
+    if CONFIG.redstoneOutputSide == nil then return end
 
+    rs.setAnalogOutput(CONFIG.redstoneOutputSide, rsState and 15 or 0)
+end
+
+local EMIT_FOR_SECONDS = -1
+
+local function startOperation()
+    local function sense()
+        while true do
+            for _, area in ipairs(STATE_MANAGER.state.areas) do
+                local pos1 = utils.tableShallowClone(area[1])
+                local pos2 = utils.tableShallowClone(area[2])
+
+                for key, _ in pairs(pos1) do
+                    if pos1[key] > pos2[key] then
+                        pos1[key] = pos1[key] + 1
+                    else
+                        pos2[key] = pos2[key] + 1
+                    end
+                end
+
+                local players = PLAYER_DETECTOR.getPlayersInCoords(pos1, pos2)
+                if #players > 0 then
+                    local isNewEmission = EMIT_FOR_SECONDS == -1
+                    if isNewEmission and SPEAKER then
+                        SPEAKER.playSound("block.lever.click", 3, 1.8)
+                    end
+                    print("- Player(s) in area: "..textutils.serialiseJSON(players))
+                    print("| Resetting output linger.")
+                    EMIT_FOR_SECONDS = CONFIG.redstoneLingerDuration
+                end
+            end
+
+            os.sleep(0.5)
+        end
+    end
+
+    local function emit()
+        while true do
+            if EMIT_FOR_SECONDS > 0 then
+                EMIT_FOR_SECONDS = EMIT_FOR_SECONDS - 1
+                outputToRedstone(true)
+            elseif EMIT_FOR_SECONDS == 0 then
+                EMIT_FOR_SECONDS = -1
+                print("- Linger duration expired.")
+                print("| Halting output.")
+                SPEAKER.playSound("block.lever.click", 3, 0.8)
+                outputToRedstone(false)
+            end
+
+            os.sleep(1)
+        end
+    end
+
+    parallel.waitForAny(sense, emit)
 end
 
 local function start()
@@ -87,7 +138,7 @@ local function start()
     TERMINAL.output.setCursorPos(1, 1)
 
     if CONFIG.role == "both" or CONFIG.role == "sense" then
-        local isSetupDone = STATE_MANAGER.areas ~= nil
+        local isSetupDone = STATE_MANAGER.state.areas ~= nil
         if not isSetupDone then
             startSetup()
         end

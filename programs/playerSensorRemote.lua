@@ -56,9 +56,6 @@ local function startSetup()
             end
         end
     end
-
-
-
 end
 
 local function start()

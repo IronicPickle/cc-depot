@@ -152,4 +152,12 @@ function M.stringSplit(input, seperator)
   return stringSegments
 end
 
+function M.tableShallowClone(tab)
+  local newTab = {}
+  for key, value in pairs(tab) do
+    newTab[key] = value
+  end
+  return newTab
+end
+
 return M
