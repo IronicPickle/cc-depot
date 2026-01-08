@@ -139,7 +139,9 @@ local function startOperation()
                 EMIT_FOR_SECONDS = -1
                 print("- Linger duration expired.")
                 print("| Halting output.")
-                SPEAKER.playSound("block.lever.click", 3, 0.8)
+                if SPEAKER then
+                    SPEAKER.playSound("block.lever.click", 3, 0.8)
+                end
                 outputToRedstone(false)
             end
 
