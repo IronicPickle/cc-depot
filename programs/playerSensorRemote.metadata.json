@@ -1,5 +1,5 @@
 {
-  "label": "Player Sensor Setup",
+  "label": "Player Sensor Remote",
   "description": "A utility required to setup the area of player sensor.",
   "config": [
     {
