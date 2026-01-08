@@ -18,6 +18,18 @@
       "valid": ["sense", "emit", "both"]
     },
     {
+      "name": "setupUsername",
+      "label": "Setup Username",
+      "description": "The username of the user who will be doing the setup.",
+      "type": "string",
+      "required": true,
+      "show-if": {
+        "role": {
+          "equals": ["sense", "both"]
+        }
+      }
+    },
+    {
       "name": "setupChannel",
       "label": "Setup Channel",
       "description": "The channel used to communicate with the setup pocket computer.",
