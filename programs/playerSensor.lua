@@ -82,6 +82,8 @@ local EMIT_FOR_SECONDS = -1
 
 local function startOperation()
     local function resetLinger()
+        if CONFIG.mode == "sense" then return end
+
         local isNewEmission = EMIT_FOR_SECONDS == -1
         if isNewEmission and SPEAKER then
             SPEAKER.playSound("block.lever.click", 3, 1.8)
@@ -99,6 +101,8 @@ local function startOperation()
     end
     
     local function sense()
+        if CONFIG.mode == "emit" then return end
+
         while true do
             for _, area in ipairs(STATE_MANAGER.state.areas) do
                 local pos1 = utils.tableShallowClone(area[1])
@@ -125,6 +129,8 @@ local function startOperation()
     end
 
     local function emit()
+        if CONFIG.mode == "sense" then return end
+
         while true do
             if EMIT_FOR_SECONDS > 0 then
                 EMIT_FOR_SECONDS = EMIT_FOR_SECONDS - 1
@@ -142,6 +148,8 @@ local function startOperation()
     end
 
     local function listen()
+        if CONFIG.mode == "sense" then return end
+
         if not MODEM then return end
 
         MODEM.open(CONFIG.channel)
