@@ -17,7 +17,7 @@ local SPEAKER = peripheral.find("speaker")
 local PLAYER_DETECTOR = peripheral.find("playerDetector")
 
 if not peripheral.find("playerDetector") then error("An attached player detector is required for setup") end
-if not peripheral.find("modem") and CONFIG.role ~= "both" then error("An attached modem is required for '"..CONFIG.mode.."' mode.") end
+if not peripheral.find("modem") and CONFIG.role ~= "both" then error("An attached modem is required for '"..CONFIG.role.."' mode.") end
 
 -- Globals
 local STATE_MANAGER = StateManager:new({
@@ -82,7 +82,7 @@ local EMIT_FOR_SECONDS = -1
 
 local function startOperation()
     local function resetLinger()
-        if CONFIG.mode == "sense" then return end
+        if CONFIG.role == "sense" then return end
 
         local isNewEmission = EMIT_FOR_SECONDS == -1
         if isNewEmission and SPEAKER then
@@ -101,7 +101,7 @@ local function startOperation()
     end
     
     local function sense()
-        if CONFIG.mode == "emit" then return end
+        if CONFIG.role == "emit" then return end
 
         while true do
             for _, area in ipairs(STATE_MANAGER.state.areas) do
@@ -129,7 +129,7 @@ local function startOperation()
     end
 
     local function emit()
-        if CONFIG.mode == "sense" then return end
+        if CONFIG.role == "sense" then return end
 
         while true do
             if EMIT_FOR_SECONDS > 0 then
@@ -150,7 +150,7 @@ local function startOperation()
     end
 
     local function listen()
-        if CONFIG.mode == "sense" then return end
+        if CONFIG.role == "sense" then return end
 
         if not MODEM then return end
 
