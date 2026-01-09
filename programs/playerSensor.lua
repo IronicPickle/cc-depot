@@ -16,7 +16,8 @@ local MODEM = peripheral.find("modem")
 local SPEAKER = peripheral.find("speaker")
 local PLAYER_DETECTOR = peripheral.find("playerDetector")
 
-if not peripheral.find("modem") and CONFIG.role ~= "both" then error("An attached modem is required for '"..CONFIG.role.."' mode.") end
+if not peripheral.find("playerDetector") and CONFIG.role ~= "emit" then error("An attached player detector is required "..CONFIG.role.." role.") end
+if not peripheral.find("modem") and CONFIG.role ~= "both" then error("An attached modem is required for '"..CONFIG.role.."' role.") end
 
 -- Globals
 local STATE_MANAGER = StateManager:new({
