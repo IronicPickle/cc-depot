@@ -170,7 +170,7 @@ local function drawMoving()
             if(i > max) then i = 1 end
             BODY.output.clear()
             
-            BODY:write("Moving to" .. floor.floorName, {
+            BODY:write("Moving to: " .. floor.floorName, {
                 x=0,
                 y=2,
                 align="center"
