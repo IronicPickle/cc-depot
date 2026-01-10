@@ -17,6 +17,14 @@
       "required": true
     },
     {
+      "name": "role",
+      "label": "Role",
+      "description": "Should this computer be able to call to multiple levels, or just its own level?",
+      "type": "string",
+      "default": "multi",
+      "valid": ["multi", "single"]
+    },
+    {
       "name": "channel",
       "label": "Channel",
       "description": "The channel all other computers controlling this elevator should communicate on.",
