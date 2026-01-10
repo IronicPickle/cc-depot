@@ -260,7 +260,7 @@ local function printConfigOption(option, error)
     end
 end
 
-local function promptForConfigOption(option, existingValues)
+local function promptForConfigOption(option, existingValue)
     local value = existingValue
     local error = nil
 
