@@ -29,8 +29,8 @@ local STATE_MANAGER = StateManager:new({
 })
 
 -- Windows
-local HEADER_HEIGHT = 6
-local FOOTER_HEIGHT = 3
+local HEADER_HEIGHT = CONFIG.role == "multi" and 6 or 4
+local FOOTER_HEIGHT = CONFIG.role == "multi" and 3 or 0
 local BODY_HEIGHT = MONITOR.output.height - HEADER_HEIGHT - FOOTER_HEIGHT
 
 local HEADER = Window:new(MONITOR.output, {
@@ -56,42 +56,71 @@ local DIRECTION = 0
 
 -- Main
     
+    
 local function drawFloors()
     if(STATE_MANAGER.state.floor > #FLOORS) then
         STATE_MANAGER:save({
             floor=1
         })
     end
-    BODY:write("Floor: " .. FLOORS[STATE_MANAGER.state.floor].floorName, {
-        x=2,
-        y=2,
-        align="right"
-    })
-    BODY:write("# Floors", {
-        x=2,
-        y=2,
-        align="left"
-    })
     
-    for i, floor in ipairs(FLOORS) do
-        local y = 4 + i
-        if(i == STATE_MANAGER.state.floor) then
-            BODY.output.setBackgroundColor(colors.blue)
-            BODY:drawBox({
-                x=1,
-                y=y,
-                width=BODY.output.width,
-                height=1,
-                filled=true,
-                bgColor=colors.blue
-            })
-        end
-        BODY:write(" > " .. floor.floorName .. " ", {
+
+    if CONFIG.role == "multi" then
+        BODY:write("Floor: " .. FLOORS[STATE_MANAGER.state.floor].floorName, {
             x=2,
-            y=y,
+            y=2,
+            align="right"
+        })
+        BODY:write("# Floors", {
+            x=2,
+            y=2,
             align="left"
         })
-        BODY.output.setBackgroundColor(colors.cyan)
+        
+        for i, floor in ipairs(FLOORS) do
+            local y = 4 + i
+            if(i == STATE_MANAGER.state.floor) then
+                BODY.output.setBackgroundColor(colors.blue)
+                BODY:drawBox({
+                    x=1,
+                    y=y,
+                    width=BODY.output.width,
+                    height=1,
+                    filled=true,
+                    bgColor=colors.blue
+                })
+            end
+            BODY:write(" > " .. floor.floorName .. " ", {
+                x=2,
+                y=y,
+                align="left"
+            })
+            BODY.output.setBackgroundColor(colors.cyan)
+        end
+    else
+        BODY:write(CONFIG.floorName, {
+            x=0,
+            y=2,
+            align="center"
+        })
+
+        local _, floorIndex = utils.findInTable(FLOORS, function (floor)
+            return CONFIG.floorNumber == floor.floorNumber    
+        end)
+        local isAtThisLevel = floorIndex == STATE_MANAGER.state.floor
+        if isAtThisLevel then
+            BODY:write("At this level", {
+                x=0,
+                y=5,
+                align="center"
+            })
+        else
+            BODY:write("Click to call", {
+                x=0,
+                y=5,
+                align="center"
+            })
+        end
     end
 end
 
@@ -125,41 +154,79 @@ local function awaitFinish()
 end
 
 local function drawMoving()
-    local i = 1
-    local max = BODY.output.height - 4
-    while(true) do
-        i = i + 1
-        if(i > max) then i = 1 end
-        
-        local dirStr = "\\/"
-        if(DIRECTION > 0) then
-            dirStr = "/\\"
-        end
-        
-        BODY.output.clear()
-        local floor = FLOORS[StateManager.state.floor]
-        
-        BODY:write("Moving to: " .. floor.floorName, {
-            x=0,
-            y=2,
-            align="center"
-        })
-        
-        for ii = 1, 5, 1 do
-            local y = i + ii - 1
-            if(y > max) then y = y % max end
-            if(DIRECTION > 0) then
-                y = (y - max - 1) * -1
-            end
+    local dirStr = "\\/"
+    if(DIRECTION > 0) then
+        dirStr = "/\\"
+    end
+
+    local floor = FLOORS[StateManager.state.floor]
             
-            BODY:write(dirStr, {
+    if CONFIG.role == "multi" then
+        local i = 1
+        local max = BODY.output.height - 4
+
+        while true do
+            i = i + 1
+            if(i > max) then i = 1 end
+            BODY.output.clear()
+            
+            BODY:write("Moving to" .. floor.floorName, {
                 x=0,
-                y=y + 3,
+                y=2,
                 align="center"
             })
+            
+            for ii = 1, 5, 1 do
+                local y = i + ii - 1
+                if(y > max) then y = y % max end
+                if(DIRECTION > 0) then
+                    y = (y - max - 1) * -1
+                end
+                
+                BODY:write(dirStr, {
+                    x=0,
+                    y=y + 3,
+                    align="center"
+                })
+            end
+            
+            os.sleep(0.1)
         end
-        
-        os.sleep(0.1)
+    else
+
+        local i = 1
+        local max = BODY.output.height - 1
+
+        while true do
+            i = i + 1
+            if(i > max) then i = 1 end
+            BODY.output.clear()
+
+            local y = i
+
+            if DIRECTION > 0 then
+                y = (y - max - 1) * -1
+            end
+
+            BODY:write("Moving to", {
+                x=1,
+                y=2,
+                align="left"
+            })
+            BODY:write(floor.floorName, {
+                x=1,
+                y=5,
+                align="left"
+            })
+
+            BODY:write(dirStr, {
+                x=1,
+                y=y + 1,
+                align="right"
+            })
+            
+            os.sleep(0.2)
+        end
     end
 end
 
@@ -178,23 +245,26 @@ local function drawHeader()
         bgColor=colors.white
     })
 
-    HEADER:write("Elevator", {
-        x=0,
-        y=2,
-        align="center"
-    })
-    HEADER:write("This Floor: "..CONFIG.floorName, {
-        x=0,
-        y=4,
-        align="center"
-    })
+        HEADER:write("Elevator", {
+            x=0,
+            y=2,
+            align="center"
+        })
+
+    if CONFIG.role == "multi" then
+        HEADER:write("This Floor: "..CONFIG.floorName, {
+            x=0,
+            y=4,
+            align="center"
+        })
+    end
 end
 
 local function drawBody()
     BODY:fillBackground({
         bgColor=colors.cyan
     })
-    
+
     if(IS_MOVING) then
         parallel.waitForAny(
             drawMoving, awaitFinish,
@@ -222,16 +292,18 @@ local function drawFooter()
 
     })
 
-    FOOTER:write("Select a floor", {
-        x=2,
-        y=3,
-        align="left"
-    })
-    FOOTER:write("Channel: "..CONFIG.channel, {
-        x=2,
-        y=3,
-        align="right"
-    })
+    if CONFIG.role == "multi" then
+        FOOTER:write("Select a floor", {
+            x=2,
+            y=3,
+            align="left"
+        })
+        FOOTER:write("Channel: "..CONFIG.channel, {
+            x=2,
+            y=3,
+            align="right"
+        })
+    end
 end
 
 
@@ -255,7 +327,7 @@ end
 
 local function moveTo(floorIndex)
     local floor = FLOORS[STATE_MANAGER.state.floor]
-    DIRECTION = STATE_MANAGER.state.floor - floorIndex 
+    DIRECTION = STATE_MANAGER.state.floor - floorIndex
     STATE_MANAGER:save({
         floor=floorIndex
     })
@@ -285,7 +357,7 @@ local function moveTo(floorIndex)
 end
 
 function await()
-    while(true) do
+    while true do
         local event, p1, p2, p3, p4, p5 = os.pullEvent()
         
         local isTouch = (event == "monitor_touch")
@@ -293,12 +365,33 @@ function await()
         local isModemMessage = (event == "modem_message")
         
         if(isTouch) then
-            local x = p2
-            local y = p3 - HEADER.output.height
-            
-            local floorIndex = y - 4
-            local floor = FLOORS[floorIndex]
-            if(floor and (floorIndex) ~= STATE_MANAGER.state.floor) then
+            if CONFIG.role == "multi" then
+                local x = p2
+                local y = p3 - HEADER.output.height
+                
+                local floorIndex = y - 4
+                local floor = FLOORS[floorIndex]
+                if(floor and (floorIndex) ~= STATE_MANAGER.state.floor) then
+                    if MODEM then
+                        MODEM.transmit(CONFIG.channel, CONFIG.channel,
+                            {
+                                type = "/elevator/floorChange",
+                                floorIndex = floorIndex
+                            }
+                        )
+                    end
+                    moveTo(floorIndex)
+                    break
+                end
+            else
+                local _, floorIndex = utils.findInTable(FLOORS, function (floor)
+                    return CONFIG.floorNumber == floor.floorNumber            
+                end)
+
+                if floorIndex == STATE_MANAGER.state.floor then
+                    goto continue
+                end
+
                 if MODEM then
                     MODEM.transmit(CONFIG.channel, CONFIG.channel,
                         {
@@ -308,7 +401,6 @@ function await()
                     )
                 end
                 moveTo(floorIndex)
-                break
             end
         elseif(isModemMessage) then
             local body = p4
@@ -317,6 +409,8 @@ function await()
                 break
             end
         end
+
+        ::continue::
     end
 end
 
@@ -343,7 +437,7 @@ local function start()
                     function(a, b) return a.floorNumber > b.floorNumber end
                 )
                 drawHeader()
-                drawFooter()
+                if CONFIG.role == "multi" then drawFooter() end
                 drawBody()
             end
         )
