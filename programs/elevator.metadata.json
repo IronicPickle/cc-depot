@@ -43,21 +43,21 @@
       "label": "Destination Redstone Output Side",
       "description": "The side of the computer that should be powered when this floor is the destination.",
       "type": "string",
-      "valid": ["bottom", "top", "back", "fron", "right", "left"]
+      "valid": ["bottom", "top", "back", "front", "right", "left"]
     },
     {
       "name": "directionRedstoneOutputSide",
       "label": "Direction Redstone Output Side",
       "description": "The side of the computer that should be powered when the elevator is moving up.",
       "type": "string",
-      "valid": ["bottom", "top", "back", "fron", "right", "left"]
+      "valid": ["bottom", "top", "back", "front", "right", "left"]
     },
     {
       "name": "movingRedstoneOutputSide",
       "label": "Moving Redstone Output Side",
       "description": "The side of the computer that should be powered when the elevator is moving.",
       "type": "string",
-      "valid": ["bottom", "top", "back", "fron", "right", "left"]
+      "valid": ["bottom", "top", "back", "front", "right", "left"]
     }
   ]
 }

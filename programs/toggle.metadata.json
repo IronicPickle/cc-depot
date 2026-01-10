@@ -29,7 +29,7 @@
       "label": "Redstone Output Side",
       "description": "The side of the computer the redstone output should be emitted on.",
       "type": "string",
-      "valid": ["bottom", "top", "back", "fron", "right", "left"]
+      "valid": ["bottom", "top", "back", "front", "right", "left"]
     }
   ]
 }
