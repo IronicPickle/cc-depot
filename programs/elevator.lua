@@ -58,6 +58,7 @@ local DIRECTION = 0
     
     
 local function drawFloors()
+    print(STATE_MANAGER.state.floor)
     if(STATE_MANAGER.state.floor > #FLOORS) then
         STATE_MANAGER:save({
             floor=1
