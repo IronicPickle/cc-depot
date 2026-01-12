@@ -58,7 +58,6 @@ local DIRECTION = 0
     
     
 local function drawFloors()
-    print(STATE_MANAGER.state.floor)
     if(STATE_MANAGER.state.floor > #FLOORS) then
         STATE_MANAGER:save({
             floor=1
@@ -160,7 +159,7 @@ local function drawMoving()
         dirStr = "/\\"
     end
 
-    local floor = FLOORS[StateManager.state.floor]
+    local floor = FLOORS[STATE_MANAGER.state.floor]
             
     if CONFIG.role == "multi" then
         local i = 1

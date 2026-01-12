@@ -21,18 +21,15 @@ function StateManager:new(options)
 
     local path = dir.."/"..name..".state.json"
 
-    local o = { dir=dir, name=name, default=options.default, path=path }
-    setmetatable(o, self)
-    self.__index = self
-
     local existingState = read(path)
 
-    if existingState then
-        self.state = existingState
-    elseif default then
-        self.state = default
+    if not existingState and default then
         write(path, default)
     end
+
+    local o = { dir=dir, name=name, default=default, path=path, state=existingState or default }
+    setmetatable(o, self)
+    self.__index = self
 
     return o
 end

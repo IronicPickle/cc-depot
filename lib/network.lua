@@ -67,14 +67,14 @@ function M.joinOrCreate(channel, isHost, device, onChange)
 
         if body.type == "/network/reset" then
           print(" > Received network reset request")
-          if isHost then STATE_MANAGER.save({}) end
+          if isHost then STATE_MANAGER:save({}) end
           os.sleep(2)
           return
         end
       elseif event == "key_up" then
         if key == 261 then -- DEL key
           print(" > Sending network reset request")
-          if isHost then STATE_MANAGER.save({}) end
+          if isHost then STATE_MANAGER:save({}) end
           modem.transmit(channel, channel, {
             type = "/network/reset"
           })
