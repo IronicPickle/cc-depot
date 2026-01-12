@@ -326,7 +326,7 @@ local function sendSignal(targetFloorNum)
 end
 
 local function moveTo(floorIndex)
-    local floor = FLOORS[STATE_MANAGER.state.floor]
+    local floor = FLOORS[floorIndex]
     DIRECTION = STATE_MANAGER.state.floor - floorIndex
     STATE_MANAGER:save({
         floor=floorIndex
