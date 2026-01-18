@@ -310,7 +310,7 @@ end
 local function sendSignal(targetFloorNum)
     if CONFIG.destinationRedstoneOutputSide then
         redstone.setOutput(
-            CONFIG.destinationRedstoneOutputSide, CONFIG.floorNumber ~= targetFloorNum
+            CONFIG.destinationRedstoneOutputSide, CONFIG.floorNumber == targetFloorNum
         )
     end
     if CONFIG.directionRedstoneOutputSide then
