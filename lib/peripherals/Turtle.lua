@@ -43,7 +43,7 @@ function Turtle:setStateValue(key, value)
 end
 
 function Turtle:getStateValue(key)
-    return utils.stateManager.state[key]
+    return self.stateManager.state[key]
 end
 
 function Turtle:resumePreviousMovement()
