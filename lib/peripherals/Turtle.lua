@@ -39,7 +39,7 @@ function Turtle:setStateValue(key, value)
 
     newState[key] = value
 
-    self.stateManager.state.stateManager:save(newState)
+    self.stateManager:save(newState)
 end
 
 function Turtle:getStateValue(key)
