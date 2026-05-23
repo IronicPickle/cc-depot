@@ -1,0 +1,27 @@
+{
+  "label": "Quarry",
+  "description": "An automation quarry program for mining turtles",
+  "config": [
+    {
+      "name": "x",
+      "label": "Max X",
+      "description": "The max X coordinate the quarry should cover.",
+      "type": "number",
+      "default": 10
+    },
+    {
+      "name": "z",
+      "label": "Z",
+      "description": "The max Z coordinate the quarry should cover.",
+      "type": "number",
+      "default": 10
+    },
+    {
+      "name": "y",
+      "label": "Y",
+      "description": "The max Y coordinate the quarry should cover.",
+      "type": "number",
+      "default": 10
+    }
+  ]
+}
