@@ -1,6 +1,6 @@
 -- Deps
 local utils = require("/lib/utils")
-local Monitor = require("/lib/peripherals/Montior")
+local Monitor = require("/lib/peripherals/Monitor")
 
 -- Term
 local TERM = Monitor:new(term, {
