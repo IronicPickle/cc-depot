@@ -25,7 +25,19 @@ local TURTLE = Turtle:new(StateManager:new({
 function start()
   print("# Quarry program started")
 
+  TURTLE:resumePreviousMovement()
+  TURTLE:returnToAnchor()
+  TURTLE:resetAnchor()
+
+  TURTLE:faceForward()
   TURTLE:forward(5)
+  TURTLE:faceRight()
+  TURTLE:forward(5)
+  TURTLE:up(5)
+  TURTLE:returnToAnchor()
+  TURTLE:resumePosition()
+  TURTLE:returnToAnchor()
+  TURTLE:resetAnchor()
 end
 
 start()

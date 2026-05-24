@@ -1,5 +1,11 @@
 -- Deps
 local utils = require("/lib/utils")
+local Monitor = require("/lib/peripherals/Montior")
+
+-- Term
+local TERM = Monitor:new(term, {
+    textScale=0.5
+})
 
 local Turtle = {}
 
@@ -18,20 +24,43 @@ local DEFAULT_STATE = {
     orientation = "forward"
 }
 
-function Turtle:new(stateManager)
+function Turtle:new(stateManager, options)
+    if not options then
+        options = {
+            fuelSlot = 16,
+            refuelThresholdPercent = 2.5,
+            refuelAmountPercent = 5
+        }
+    end
+
     local o = {
-        stateManager = stateManager
+        stateManager = stateManager,
+        options = options
     }
 
     stateManager.default = DEFAULT_STATE
     if not stateManager.state then
         stateManager:save(DEFAULT_STATE)
     end
-    
+
+    sleep(1)
+
+    print("- Turtle instantiated with state:")
+    print("  Moving to: ("..formatCoords(stateManager.state.movingTo)..")")
+    print("  Anchor: ("..formatCoords(stateManager.state.anchorOffset)..")")
+    print("  Previous Anchor: ("..formatCoords(stateManager.state.previousAnchorOffset)..")")
+    print("  Orientation: "..stateManager.state.orientation)
+
     setmetatable(o, self)
     self.__index = self
 
     return o
+end
+
+function formatCoords(coords)
+    if not coords then coords = {} end
+
+    return (coords.x or 0)..", "..(coords.y or 0)..", "..(coords.z or 0)
 end
 
 function Turtle:setStateValue(key, value)
@@ -48,6 +77,8 @@ end
 
 function Turtle:resumePreviousMovement()
     local movingTo = utils.tableShallowClone(self:getStateValue("movingTo"))
+
+    print("- Resuming previous movement ".."("..formatCoords(movingTo)..")")
 
     if movingTo.x ~= nil or movingTo.y ~= nil or movingTo.z ~= nil then
         self:moveTo({
@@ -69,7 +100,7 @@ end
 
 function Turtle:moveTo(coords)
     -- Save target destination to state
-    local movingTo = utils.tableShallowClone(self:getStateValue(coords))
+    local movingTo = utils.tableShallowClone(self:getStateValue(coords) or {})
 
     if coords.x ~= nil then
         movingTo.x = coords.x
@@ -89,7 +120,7 @@ function Turtle:moveTo(coords)
         self:forward(coords.z)
     elseif coords.z < 0 then
         self:faceBack()
-        self:forward(coords.z)
+        self:forward(0 - coords.z)
     end
 
     -- Move to anchor x
@@ -98,24 +129,23 @@ function Turtle:moveTo(coords)
         self:forward(coords.x)
     elseif coords.x < 0 then
         self:faceLeft()
-        self:forward(coords.x)
+        self:forward(0 - coords.x)
     end
 
     -- Move to anchor y
     if coords.y > 0 then
         self:up(coords.y)
     elseif coords.y < 0 then
-        self:down(coords.y)
+        self:down(0 - coords.y)
     end
 end
 
 function Turtle:returnToAnchor()
-    -- Retain and reset anchorOffset
-    local anchorOffset = utils.tableShallowClone(self:getStateValue("anchorOffset"))
-    self:resetAnchor()
-
     -- Save current anchor to previousAnchorOffset
+    local anchorOffset = utils.tableShallowClone(self:getStateValue("anchorOffset"))
     self:setStateValue("previousAnchorOffset", anchorOffset)
+
+    print("- Returning to anchor ".."("..formatCoords(anchorOffset)..")")
 
     self:moveTo({
         x = 0 - anchorOffset.x,
@@ -124,37 +154,39 @@ function Turtle:returnToAnchor()
     })
 
     -- Reset position
-    self:forward()
+    self:faceForward()
 end
 
 function Turtle:resumePosition()
     -- Retain and reset previousAnchorOffset
     local previousAnchorOffset = utils.tableShallowClone(self:getStateValue("previousAnchorOffset"))
-    self:resetAnchor()
+    self:setStateValue("previousAnchorOffset", nil)
+
+    print("- Resuming position ".."("..formatCoords(previousAnchorOffset)..")")
 
     self:moveTo({
-        x = 0 - previousAnchorOffset.x,
-        y = 0 - previousAnchorOffset.y,
-        z = 0 - previousAnchorOffset.z
+        x = previousAnchorOffset.x,
+        y = previousAnchorOffset.y,
+        z = previousAnchorOffset.z
     })
 
     -- Reset position
-    self:forward()
+    self:faceForward()
 end
 
 function Turtle:incrementAnchor(increments)
     local anchorOffset = utils.tableShallowClone(self:getStateValue("anchorOffset"))
 
     if increments.x ~= nil then
-        anchorOffset.x = increments.x
+        anchorOffset.x = anchorOffset.x + increments.x
     end
 
     if increments.z ~= nil then
-        anchorOffset.z = increments.z
+        anchorOffset.z = anchorOffset.z + increments.z
     end
 
     if increments.y ~= nil then
-        anchorOffset.y = increments.y
+        anchorOffset.y = anchorOffset.y + increments.y
     end
 
     self:setStateValue("anchorOffset", anchorOffset)
@@ -176,6 +208,81 @@ function Turtle:incrementAnchorY(increment)
     self:incrementAnchor({
         y=increment
     })
+end
+
+function drawFuelLevel()
+    local width = TERM.output.width
+
+    local fuelLevel = turtle.getFuelLevel()
+    local maxFuelLevel = turtle.getFuelLimit()
+
+    if fuelLevel == "unlimited" then
+        fuelLevel = maxFuelLevel
+    end
+
+    local currentFuelPercent = fuelLevel / (maxFuelLevel / 100)
+
+    local maxFuelCharacters = width - 2
+    local currentFuelCharacters = math.floor(((maxFuelCharacters / 100) * currentFuelPercent))
+
+    local currentFuelString = string.rep("#", currentFuelCharacters)
+    local emptyFuelString = string.rep(" ", maxFuelCharacters - currentFuelCharacters)
+
+    local fuelString = "["..currentFuelString..emptyFuelString.."]"
+
+    TERM:write(fuelString,
+        {
+            x=1,
+            y=1,
+            textColor=colors.white,
+            bgColor=colors.blue
+        }
+    )
+end
+
+function Turtle:attemptRefuel()
+    local fuelLevel = turtle.getFuelLevel()
+    local maxFuelLevel = turtle.getFuelLimit()
+
+    if fuelLevel == "unlimited" then return end
+
+    local currentFuelPercent = fuelLevel / (maxFuelLevel / 100)
+    local needsRefueling = currentFuelPercent < self.options.refuelThresholdPercent
+
+    if needsRefueling then
+        print("  - Attempting refuel...")
+        print("  - Current Fuel level: "..currentFuelPercent.."%")
+        print("  - Target Fuel level: "..self.options.refuelAmountPercent.."%")
+
+        local selectedSlot = turtle.getSelectedSlot()
+        turtle.select(self.options.fuelSlot)
+
+        while currentFuelPercent < self.options.refuelAmountPercent do
+            local success, error
+
+            while not success do
+                if error then
+                    print("  - Refuel failed: "..error)
+                    print("  - Current Fuel level: "..currentFuelPercent.."%")
+                    print("  - Retrying in 5 seconds...")
+
+                    sleep(5)
+                end
+
+                success, error = turtle.refuel(4)
+
+                print("  - Refueled to: "..currentFuelPercent.."%")
+            end
+
+            fuelLevel = turtle.getFuelLevel()
+            currentFuelPercent = fuelLevel / (maxFuelLevel / 100)
+        end
+
+        turtle.select(selectedSlot)
+    end
+
+
+
 end
 
 function Turtle:turnRight(turns)
@@ -306,16 +413,28 @@ function Turtle:forward(distance)
             movingTo.z = movingTo.z + 1
         elseif orientation == "right" then
             self:incrementAnchorX(1)
-            movingTo.x = movingTo.x + 1
+            movingTo.x = movingTo.x - 1
         elseif orientation == "left" then
             self:incrementAnchorX(-1)
-            movingTo.x = movingTo.x - 1
+            movingTo.x = movingTo.x + 1
         end
 
         self:setStateValue("movingTo", utils.tableShallowClone(movingTo))
 
         -- Turtle action
-        turtle.forward()
+        self:attemptRefuel()
+
+        local success, error
+        while not success do
+            if error then
+                print("  - Movement failed: "..error)
+                print("  - Retrying in 5 seconds...")
+
+                sleep(5)
+            end
+
+            success, error = turtle.forward()
+        end
     end
 
     if orientation == "forward" then
@@ -396,7 +515,7 @@ function Turtle:up(distance)
     for _=1, distance, 1 do
         -- State update
         self:incrementAnchorY(1)
-        movingTo.y = distance + 1
+        movingTo.y = movingTo.y - 1
 
         self:setStateValue("movingTo", utils.tableShallowClone(movingTo))
 
@@ -421,7 +540,7 @@ function Turtle:down(distance)
     for _=1, distance, 1 do
         -- State update
         self:incrementAnchorY(-1)
-        movingTo.y = distance - 1
+        movingTo.y = movingTo.y + 1
 
         self:setStateValue("movingTo", utils.tableShallowClone(movingTo))
 
