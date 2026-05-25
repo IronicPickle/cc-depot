@@ -21,6 +21,7 @@ local DEFAULT_STATE = {
         z = nil,
         y = nil
     },
+    movingToOrder = nil,
     orientation = "forward"
 }
 
@@ -28,9 +29,9 @@ local DEFAULT_OPTIONS = {
     -- Which inventory slot to store fuel in
     fuelSlot = 16,
     -- The minimum fuel percent the turtle will operate at before refueling
-    refuelThresholdPercent = 14.99,
+    refuelThresholdPercent = 19.1,
     -- The target fuel percent the turtle will attempt to reach when refueling
-    refuelAmountPercent = 15,
+    refuelAmountPercent = 19,
     -- Which side of the turtle to use for accessing fuel
     fuelInventorySide = nil,
     -- How many fuel items should the turtle require as stock
@@ -80,7 +81,7 @@ function Turtle:initialize()
     sleep(1)
 
     print("")
-    print("- Initializing turtle...")
+    print("  - Initializing turtle...")
 
     self:drawHeader()
 
@@ -101,8 +102,9 @@ end
 
 function Turtle:resumePreviousMovement()
     local movingTo = utils.tableShallowClone(self:getStateValue("movingTo"))
+    local movingToOrder = self:getStateValue("movingToOrder") and utils.tableShallowClone(self:getStateValue("movingToOrder")) or nil
 
-    print("- Resuming previous movement ".."("..formatCoords(movingTo)..")")
+    print("  - Resuming previous movement ".."("..formatCoords(movingTo)..")")
 
     self:drawHeader()
 
@@ -111,7 +113,7 @@ function Turtle:resumePreviousMovement()
             x = movingTo.x or 0,
             y = movingTo.y or 0,
             z = movingTo.z or 0
-        })
+        }, true, movingToOrder)
     end
 end
 
@@ -124,46 +126,44 @@ function Turtle:resetAnchor()
     self:setStateValue("previousAnchorOffset", nil)
 end
 
-function Turtle:moveTo(coords, noRefuelAttempt)
+function Turtle:moveTo(coords, noRefuelAttempt, order)
+    if not order then order = { "z", "x", "y" } end
+
     -- Save target destination to state
-    local movingTo = utils.tableShallowClone(self:getStateValue(coords) or {})
+    self:setStateValue("movingTo", utils.tableShallowClone(coords))
+    self:setStateValue("movingToOrder", utils.tableShallowClone(order))
 
-    if coords.x ~= nil then
-        movingTo.x = coords.x
-    end
-    if coords.y ~= nil then
-        movingTo.y = coords.y
-    end
-    if coords.z ~= nil then
-        movingTo.z = coords.z
+    for _, axis in ipairs(order) do
+        if axis == "x" then
+            -- Move to anchor x
+            if coords.x > 0 then
+                self:faceRight()
+                self:forward(coords.x, noRefuelAttempt)
+            elseif coords.x < 0 then
+                self:faceLeft()
+                self:forward(0 - coords.x, noRefuelAttempt)
+            end
+        elseif axis == "y" then
+            -- Move to anchor y
+            if coords.y > 0 then
+                self:up(coords.y, noRefuelAttempt)
+            elseif coords.y < 0 then
+                self:down(0 - coords.y, noRefuelAttempt)
+            end
+        elseif axis == "z" then
+            -- Move to anchor z
+            if coords.z > 0 then
+                self:faceForward()
+                self:forward(coords.z, noRefuelAttempt)
+            elseif coords.z < 0 then
+                self:faceBack()
+                self:forward(0 - coords.z, noRefuelAttempt)
+            end
+        end
     end
 
-    self:setStateValue("movingTo", utils.tableShallowClone(movingTo))
-
-    -- Move to anchor z
-    if coords.z > 0 then
-        self:faceForward()
-        self:forward(coords.z, noRefuelAttempt)
-    elseif coords.z < 0 then
-        self:faceBack()
-        self:forward(0 - coords.z, noRefuelAttempt)
-    end
-
-    -- Move to anchor x
-    if coords.x > 0 then
-        self:faceRight()
-        self:forward(coords.x, noRefuelAttempt)
-    elseif coords.x < 0 then
-        self:faceLeft()
-        self:forward(0 - coords.x, noRefuelAttempt)
-    end
-
-    -- Move to anchor y
-    if coords.y > 0 then
-        self:up(coords.y, noRefuelAttempt)
-    elseif coords.y < 0 then
-        self:down(0 - coords.y, noRefuelAttempt)
-    end
+    -- Clear moving to order in state
+    self:setStateValue("movingToOrder", nil)
 end
 
 function Turtle:isAtAnchor()
@@ -178,7 +178,7 @@ function Turtle:returnToAnchor(noRefuelAttempt)
         local anchorOffset = utils.tableShallowClone(self:getStateValue("anchorOffset"))
         self:setStateValue("previousAnchorOffset", anchorOffset)
 
-        print("- Returning to anchor ".."("..formatCoords(anchorOffset)..")")
+        print("  - Returning to anchor ".."("..formatCoords(anchorOffset)..")")
 
         self:drawHeader()
 
@@ -193,14 +193,14 @@ function Turtle:returnToAnchor(noRefuelAttempt)
     self:faceForward()
 end
 
-function Turtle:resumePosition()
+function Turtle:resumePosition(noRefuelAttempt)
     if not self:getStateValue("previousAnchorOffset") then return end
 
     -- Retain and reset previousAnchorOffset
     local previousAnchorOffset = utils.tableShallowClone(self:getStateValue("previousAnchorOffset"))
     self:setStateValue("previousAnchorOffset", nil)
 
-    print("- Resuming position ".."("..formatCoords(previousAnchorOffset)..")")
+    print("  - Resuming position ".."("..formatCoords(previousAnchorOffset)..")")
 
     self:drawHeader()
 
@@ -208,7 +208,7 @@ function Turtle:resumePosition()
         x = previousAnchorOffset.x,
         y = previousAnchorOffset.y,
         z = previousAnchorOffset.z
-    })
+    }, noRefuelAttempt, { "y", "x", "z" })
 
     -- Reset position
     self:faceForward()
@@ -327,7 +327,8 @@ function Turtle:drawHeader()
         }
     )
 
-    TERM.output.setCursorPos(0, TERM.output.height)
+    TERM.output.setCursorPos(0, TERM.output.height - 1)
+    print("")
 end
 
 function Turtle:attemptRefuel()
@@ -344,23 +345,31 @@ function Turtle:attemptRefuel()
     self:drawHeader()
 
     if needsRefueling then
-        print("  - Attempting refuel...")
-        print("  - Current fuel level: "..currentFuelPercent.."%")
-        print("  - Target fuel level: "..self.options.refuelAmountPercent.."%")
+        -- print("  - Attempting refuel...")
+        -- print("  - Current fuel level: "..currentFuelPercent.."%")
+        -- print("  - Target fuel level: "..self.options.refuelAmountPercent.."%")
 
         self:drawHeader()
 
         local selectedSlot = turtle.getSelectedSlot()
-        turtle.select(self.options.fuelSlot)
 
         while currentFuelPercent < self.options.refuelAmountPercent do
             local success, error
 
             while not success do
+                turtle.select(self.options.fuelSlot)
+
                 if error then
                     print("  - Refuel failed: "..error)
                     print("  - Current fuel level: "..currentFuelPercent.."%")
-                    
+
+                    if error == "Items not combustible"  then
+                        if self.options.fuelInventorySide == "down" then
+                            turtle.dropUp(64)
+                        else
+                            turtle.dropDown(64)
+                        end       
+                    end
 
                     self:drawHeader()
 
@@ -377,9 +386,9 @@ function Turtle:attemptRefuel()
                     end
                 end
 
-                success, error = turtle.refuel(4)
+                success, error = turtle.refuel(1)
 
-                print("  - Refueled to: "..currentFuelPercent.."%")
+                -- print("  - Refueled to: "..currentFuelPercent.."%")
                 self:drawHeader()
             end
 
@@ -387,11 +396,15 @@ function Turtle:attemptRefuel()
             currentFuelPercent = fuelLevel / (maxFuelLevel / 100)
         end
 
-        turtle.select(selectedSlot)
+        if selectedSlot == self.options.fuelSlot then
+            turtle.select(1)
+        else
+            turtle.select(selectedSlot)
+        end
     end
 
     if didAnchorReturn then
-        self:resumePosition()
+        self:resumePosition(true)
     end
 end
 
@@ -400,15 +413,9 @@ function Turtle:attemptRestock()
         
     if self.options.fuelInventorySide == nil or self.options.minimumFuelStock == nil then return end
 
-    if self.options.fuelInventorySide == "forward" then
-        self:faceForward()
-    elseif self.options.fuelInventorySide == "left" then
-        self:faceLeft()
-    elseif self.options.fuelInventorySide == "right" then
-        self:right()
-    elseif self.options.fuelInventorySide == "back" then
-        self:faceBack()
-    end
+    local currentOrientation = self:getStateValue("orientation")
+
+    self:face(self.options.fuelInventorySide)
 
     local fuelItemCount = turtle.getItemCount(self.options.fuelSlot)
 
@@ -422,7 +429,18 @@ function Turtle:attemptRestock()
         local selectedSlot = turtle.getSelectedSlot()
         turtle.select(self.options.fuelSlot)
 
+        local fuelSlotItemCount = turtle.getItemCount(self.options.fuelSlot)
+        if fuelSlotItemCount > 0 then
+            if self.options.fuelInventorySide == "down" then
+                turtle.dropUp(64)
+            else
+                turtle.dropDown(64)
+            end
+        end
+
         while fuelItemCount < self.options.minimumFuelStock do
+            turtle.select(self.options.fuelSlot)
+
             local success, error
 
             while not success do
@@ -437,23 +455,29 @@ function Turtle:attemptRestock()
                 end
 
                 if self.options.fuelInventorySide == "up" then
-                    success, error = turtle.suckUp(4)
+                    success, error = turtle.suckUp(1)
                 elseif self.options.fuelInventorySide == "down" then
-                    success, error = turtle.suckDown(4)
+                    success, error = turtle.suckDown(1)
                 else
-                    success, error = turtle.suck(4)
+                    success, error = turtle.suck(1)
                 end
             end
 
             fuelItemCount = turtle.getItemCount(self.options.fuelSlot)
 
-            print("  - Restocked to: "..fuelItemCount)
+            -- print("  - Restocked to: "..fuelItemCount)
 
             self:drawHeader()
         end
 
-        turtle.select(selectedSlot)
+        if selectedSlot == self.options.fuelSlot then
+            turtle.select(1)
+        else
+            turtle.select(selectedSlot)
+        end
     end
+
+    self:face(currentOrientation)
 end
 
 function Turtle:turnRight(turns)
@@ -557,6 +581,18 @@ function Turtle:faceBack()
         self:turnRight()
     elseif orientation == "left" then
         self:turnLeft()
+    end
+end
+
+function Turtle:face(orientation)
+    if orientation == "forward" then
+        self:faceForward()
+    elseif orientation == "back" then
+        self:faceBack()
+    elseif orientation == "left" then
+        self:faceLeft()
+    elseif orientation == "right" then
+        self:faceRight()
     end
 end
 

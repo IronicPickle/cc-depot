@@ -21,7 +21,7 @@ local TURTLE = Turtle:new(
     ),
     {
         fuelInventorySide = "back",
-        minimumFuelStock = 16,
+        minimumFuelStock = 32,
     }
 )
 
@@ -104,46 +104,56 @@ local function nextAction()
 
     local shouldStaggerX = anchorOffset.y % 2 ~= 0
 
-    if anchorOffset.x < maxX and anchorOffset.y < maxY then
-        if anchorOffset.x == 0 and shouldStaggerX then
-            print(" -- Offsetting")
-            TURTLE:faceRight()
-            forwardAndScan(2)
-        end
-
         if anchorOffset.z < maxZ then
-            print("  - Digging shaft")
-            TURTLE:faceForward()
-            forwardAndScan(maxZ - anchorOffset.z)
+            if shouldStaggerX and anchorOffset.x % 4 == 2 then
+                -- Dig shaft
+                print("<-> Digging shaft")
+                TURTLE:faceForward()
+                forwardAndScan()
+            elseif not shouldStaggerX and anchorOffset.x % 4 == 0 then
+                -- Dig shaft
+                print("<-> Digging shaft")
+                TURTLE:faceForward()
+                forwardAndScan()
+            elseif anchorOffset.z == 0 then
+
+                if anchorOffset.x < maxX then
+                    -- Move to next shaft
+                    print("<-> Moving to next shaft")
+                    TURTLE:faceRight()
+                    forwardAndScan()
+                else
+                    -- Leave level
+                    print("<-> Leaving level: "..(0 - anchorOffset.y))
+                    TURTLE:faceRight()
+                    TURTLE:back(maxX)
+
+                    if (0 - anchorOffset.y) < maxY then
+                        -- Move to next level
+                        print("<-> Moving to next level: "..((0 - anchorOffset.y) + 1))
+                        downAndScan()
+                    else
+                        -- Leave mine
+                        print("<-> Leaving mine")
+                        TURTLE:faceForward()
+                        TURTLE:up(maxY)
+
+                        print("# Quarry complete")
+                        return true
+                    end
+                end
+            end
         else
-            print("  - Leaving shaft")
+            -- Leave shaft
+            print("<-> Leaving shaft")
             TURTLE:faceForward()
             TURTLE:back(maxZ)
 
-            local remainingX = maxX - anchorOffset.x
-
-            if remainingX < 4 then
-                print("  - Finishing level")
-                TURTLE:faceRight()
-                forwardAndScan(remainingX)
-            elseif remainingX >= 4 then
-                print("  - Moving to next shaft")
-                TURTLE:faceRight()
-                forwardAndScan(4)
-            end
+            -- Move to next shaft
+            print("<-> Moving to next shaft")
+            TURTLE:faceRight()
+            forwardAndScan()
         end
-    else
-        print("  - Leaving level")
-        TURTLE:faceLeft()
-        TURTLE:forward(maxX)
-
-        local remainingY = maxY - anchorOffset.y
-
-        if remainingY >= 1 then
-            print("  - Moving to next level")
-            downAndScan(1)
-        end
-    end
 end
 
 -- Main
@@ -151,12 +161,11 @@ local function start()
   print("# Quarry program started")
 
   TURTLE:initialize()
+  TURTLE:resumePosition()
 
-  TURTLE:returnToAnchor()
+  while not nextAction() do end
 
-  while true do
-    nextAction()
-  end
+  while true do sleep(5) end
 end
 
 start()
