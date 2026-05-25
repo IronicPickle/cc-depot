@@ -20,7 +20,7 @@ local TURTLE = Turtle:new(
         }
     ),
     {
-        fuelInventorySide = "back",
+        fuelInventorySide = CONFIG.fuelInventorySide,
         minimumFuelStock = 32,
     }
 )

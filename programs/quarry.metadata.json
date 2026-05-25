@@ -3,6 +3,22 @@
   "description": "An automation quarry program for mining turtles",
   "config": [
     {
+      "name": "fuelInventorySide",
+      "label": "Fuel Inventory Side",
+      "description": "The side of the turtle an inventory of fuel will be made available.",
+      "type": "string",
+      "valid": ["bottom", "top", "back", "front", "right", "left"],
+      "default": "back"
+    },
+    {
+      "name": "storeInventorySide",
+      "label": "Store Inventory Side",
+      "description": "The side of the turtle an inventory to store mined resources will be made available.",
+      "type": "string",
+      "valid": ["bottom", "top", "back", "front", "right", "left"],
+      "default": "left"
+    },
+    {
       "name": "x",
       "label": "Max X",
       "description": "The max X coordinate the quarry should cover.",
