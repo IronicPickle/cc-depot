@@ -1,6 +1,6 @@
 -- Deps
 local StateManager = require("/lib/StateManager")
-local Turtle = require("/lib/peripherals/Turtle")
+local Turtle = require("/cc_pot/lib/peripherals/Turtle")
 
 -- Config
 local CONFIG = textutils.unserialiseJSON(arg[1])
@@ -95,6 +95,48 @@ local function downAndScan(distance)
     end
 end
 
+local function checkIsInventoryFull()
+    local fullSlots = 0
+
+    for slot = 1, 16, 1 do
+        if slot == TURTLE.options.fuelSlot then goto continue end
+
+        local itemCount = turtle.getItemCount(slot)
+        if itemCount > 0 then
+            fullSlots = fullSlots + 1
+        end
+
+        ::continue::
+    end
+
+    return fullSlots == 15
+end
+
+
+function storeInventory()
+    if not TURTLE:isAtAnchor() then
+        print("  - Returning to anchor to store inventory")
+        TURTLE:returnToAnchor(false)
+    end
+        
+    local currentOrientation = TURTLE:getStateValue("orientation")
+
+    TURTLE:face(CONFIG.storeInventorySide)
+
+    for slot = 1, 16, 1 do
+        if slot == TURTLE.options.fuelSlot then goto continue end
+
+        turtle.select(slot)
+        turtle.drop(64)
+
+        ::continue::
+    end
+
+    TURTLE:face(currentOrientation)
+
+    TURTLE:resumePosition(true)
+end
+
 local function nextAction()
     local anchorOffset = TURTLE:getStateValue("anchorOffset")
 
@@ -104,56 +146,60 @@ local function nextAction()
 
     local shouldStaggerX = anchorOffset.y % 2 ~= 0
 
-        if anchorOffset.z < maxZ then
-            if shouldStaggerX and anchorOffset.x % 4 == 2 then
-                -- Dig shaft
-                print("<-> Digging shaft")
-                TURTLE:faceForward()
-                forwardAndScan()
-            elseif not shouldStaggerX and anchorOffset.x % 4 == 0 then
-                -- Dig shaft
-                print("<-> Digging shaft")
-                TURTLE:faceForward()
-                forwardAndScan()
-            elseif anchorOffset.z == 0 then
+    if checkIsInventoryFull() then
+        storeInventory()
+    end
 
-                if anchorOffset.x < maxX then
-                    -- Move to next shaft
-                    print("<-> Moving to next shaft")
-                    TURTLE:faceRight()
-                    forwardAndScan()
+    if anchorOffset.z < maxZ then
+        if shouldStaggerX and anchorOffset.x % 4 == 2 then
+            -- Dig shaft
+            print("<-> Digging shaft")
+            TURTLE:faceForward()
+            forwardAndScan()
+        elseif not shouldStaggerX and anchorOffset.x % 4 == 0 then
+            -- Dig shaft
+            print("<-> Digging shaft")
+            TURTLE:faceForward()
+            forwardAndScan()
+        elseif anchorOffset.z == 0 then
+
+            if anchorOffset.x < maxX then
+                -- Move to next shaft
+                print("<-> Moving to next shaft")
+                TURTLE:faceRight()
+                forwardAndScan()
+            else
+                -- Leave level
+                print("<-> Leaving level: "..(0 - anchorOffset.y))
+                TURTLE:faceRight()
+                TURTLE:back(maxX)
+
+                if (0 - anchorOffset.y) < maxY then
+                    -- Move to next level
+                    print("<-> Moving to next level: "..((0 - anchorOffset.y) + 1))
+                    downAndScan()
                 else
-                    -- Leave level
-                    print("<-> Leaving level: "..(0 - anchorOffset.y))
-                    TURTLE:faceRight()
-                    TURTLE:back(maxX)
+                    -- Leave mine
+                    print("<-> Leaving mine")
+                    TURTLE:faceForward()
+                    TURTLE:up(maxY)
 
-                    if (0 - anchorOffset.y) < maxY then
-                        -- Move to next level
-                        print("<-> Moving to next level: "..((0 - anchorOffset.y) + 1))
-                        downAndScan()
-                    else
-                        -- Leave mine
-                        print("<-> Leaving mine")
-                        TURTLE:faceForward()
-                        TURTLE:up(maxY)
-
-                        print("# Quarry complete")
-                        return true
-                    end
+                    print("# Quarry complete")
+                    return true
                 end
             end
-        else
-            -- Leave shaft
-            print("<-> Leaving shaft")
-            TURTLE:faceForward()
-            TURTLE:back(maxZ)
-
-            -- Move to next shaft
-            print("<-> Moving to next shaft")
-            TURTLE:faceRight()
-            forwardAndScan()
         end
+    else
+        -- Leave shaft
+        print("<-> Leaving shaft")
+        TURTLE:faceForward()
+        TURTLE:back(maxZ)
+
+        -- Move to next shaft
+        print("<-> Moving to next shaft")
+        TURTLE:faceRight()
+        forwardAndScan()
+    end
 end
 
 -- Main
