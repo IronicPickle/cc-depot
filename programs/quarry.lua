@@ -1,6 +1,6 @@
 -- Deps
 local StateManager = require("/lib/StateManager")
-local Turtle = require("/cc_pot/lib/peripherals/Turtle")
+local Turtle = require("/lib/peripherals/Turtle")
 
 -- Config
 local CONFIG = textutils.unserialiseJSON(arg[1])
@@ -115,7 +115,9 @@ end
 
 function storeInventory()
     if not TURTLE:isAtAnchor() then
-        print("  - Returning to anchor to store inventory")
+        TURTLE:printLines({
+            "Returning to anchor to store inventory"
+        })
         TURTLE:returnToAnchor(false)
     end
         
@@ -150,53 +152,82 @@ local function nextAction()
         storeInventory()
     end
 
+    local prettyLevel = (0 - anchorOffset.y) + 1
+    local currentLevelLine = "<#> Current Level: "..prettyLevel
+
     if anchorOffset.z < maxZ then
         if shouldStaggerX and anchorOffset.x % 4 == 2 then
             -- Dig shaft
-            print("<-> Digging shaft")
+            TURTLE:printLines({
+                currentLevelLine,
+                "<-> Digging shaft"
+            })
             TURTLE:faceForward()
             forwardAndScan()
         elseif not shouldStaggerX and anchorOffset.x % 4 == 0 then
             -- Dig shaft
-            print("<-> Digging shaft")
+            TURTLE:printLines({
+                currentLevelLine,
+                "<-> Digging shaft"
+            })
             TURTLE:faceForward()
             forwardAndScan()
         elseif anchorOffset.z == 0 then
 
             if anchorOffset.x < maxX then
                 -- Move to next shaft
-                print("<-> Moving to next shaft")
+                TURTLE:printLines({
+                    currentLevelLine,
+                    "<-> Moving to next shaft"
+                })
                 TURTLE:faceRight()
                 forwardAndScan()
             else
                 -- Leave level
-                print("<-> Leaving level: "..(0 - anchorOffset.y))
+                TURTLE:printLines({
+                    currentLevelLine,
+                    "<-> Leaving level: "..prettyLevel
+                })
                 TURTLE:faceRight()
                 TURTLE:back(maxX)
 
                 if (0 - anchorOffset.y) < maxY then
                     -- Move to next level
-                    print("<-> Moving to next level: "..((0 - anchorOffset.y) + 1))
+                    TURTLE:printLines({
+                        currentLevelLine,
+                        "<-> Moving to next level: "..(prettyLevel + 1)
+                    })
                     downAndScan()
                 else
                     -- Leave mine
-                    print("<-> Leaving mine")
+                    TURTLE:printLines({
+                        currentLevelLine,
+                        "<-> Leaving mine"
+                    })
                     TURTLE:faceForward()
                     TURTLE:up(maxY)
 
-                    print("# Quarry complete")
+                    TURTLE:printLines({
+                        "# Quarry complete"
+                    })
                     return true
                 end
             end
         end
     else
         -- Leave shaft
-        print("<-> Leaving shaft")
+        TURTLE:printLines({
+            currentLevelLine,
+            "<-> Leaving shaft"
+        })
         TURTLE:faceForward()
         TURTLE:back(maxZ)
 
         -- Move to next shaft
-        print("<-> Moving to next shaft")
+        TURTLE:printLines({
+            currentLevelLine,
+            "<-> Moving to next shaft"
+        })
         TURTLE:faceRight()
         forwardAndScan()
     end
@@ -204,14 +235,16 @@ end
 
 -- Main
 local function start()
-  print("# Quarry program started")
+    TURTLE:printLines({
+        "# Quarry program started"
+    })
 
-  TURTLE:initialize()
-  TURTLE:resumePosition()
+    TURTLE:initialize()
+    TURTLE:resumePosition()
 
-  while not nextAction() do end
+    while not nextAction() do end
 
-  while true do sleep(5) end
+    while true do sleep(5) end
 end
 
 start()

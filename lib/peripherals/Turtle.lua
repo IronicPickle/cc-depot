@@ -22,7 +22,8 @@ local DEFAULT_STATE = {
         y = nil
     },
     movingToOrder = nil,
-    orientation = "forward"
+    orientation = "forward",
+    previousOrientation = nil
 }
 
 local DEFAULT_OPTIONS = {
@@ -71,17 +72,24 @@ function Turtle:new(stateManager, options)
     return o
 end
 
-function formatCoords(coords)
+local function formatCoords(coords)
     if not coords then coords = {} end
 
     return (coords.x or 0)..", "..(coords.y or 0)..", "..(coords.z or 0)
 end
 
+local function formatCoordsOrder(order)
+    if not order then return "N/A" end
+
+    return order[1].." -> "..order[2].." -> "..order[3]
+end
+
 function Turtle:initialize()
     sleep(1)
 
-    print("")
-    print("  - Initializing turtle...")
+    self:printLines({
+        "Initializing turtle..."
+    })
 
     self:drawHeader()
 
@@ -104,7 +112,9 @@ function Turtle:resumePreviousMovement()
     local movingTo = self:getStateValue("movingTo")
     local movingToOrder = self:getStateValue("movingToOrder")
 
-    print("  - Resuming previous movement ".."("..formatCoords(movingTo)..")")
+    self:printLines({
+        "Resuming previous movement ".."("..formatCoords(movingTo)..")"
+    })
 
     self:drawHeader()
 
@@ -178,7 +188,13 @@ function Turtle:returnToAnchor(noRefuelAttempt)
         local anchorOffset = utils.tableShallowClone(self:getStateValue("anchorOffset"))
         self:setStateValue("previousAnchorOffset", anchorOffset)
 
-        print("  - Returning to anchor ".."("..formatCoords(anchorOffset)..")")
+        -- Save current orientation to previousOrientation
+        local orientation = self:getStateValue("orientation")
+        self:setStateValue("previousOrientation", orientation)
+
+        self:printLines({
+            "Returning to anchor ".."("..formatCoords(anchorOffset)..")"
+        })
 
         self:drawHeader()
 
@@ -195,12 +211,20 @@ end
 
 function Turtle:resumePosition(noRefuelAttempt)
     if not self:getStateValue("previousAnchorOffset") then return end
+    if not self:getStateValue("previousOrientation") then return end
 
     -- Retain and reset previousAnchorOffset
     local previousAnchorOffset = utils.tableShallowClone(self:getStateValue("previousAnchorOffset"))
     self:setStateValue("previousAnchorOffset", nil)
 
-    print("  - Resuming position ".."("..formatCoords(previousAnchorOffset)..")")
+    -- Retain and reset previousOrientation
+    local previousOrientation = self:getStateValue("previousOrientation")
+    self:setStateValue("previousOrientation", nil)
+
+    self:printLines({
+        "Resuming position: ".."("..formatCoords(previousAnchorOffset)..")",
+        "Resuming orientation: "..previousOrientation
+    })
 
     self:drawHeader()
 
@@ -211,7 +235,7 @@ function Turtle:resumePosition(noRefuelAttempt)
     }, noRefuelAttempt, { "y", "x", "z" })
 
     -- Reset position
-    self:faceForward()
+    self:face(previousOrientation)
 end
 
 function Turtle:incrementAnchor(increments)
@@ -277,7 +301,7 @@ function Turtle:drawHeader()
         x=1,
         y=1,
         width=width,
-        height=5,
+        height=4,
         bgColor=colors.blue,
         filled=true
     })
@@ -300,7 +324,17 @@ function Turtle:drawHeader()
         }
     )
 
-    TERM:write("Previous Anchor: "..formatCoords(self.stateManager.state.previousAnchorOffset),
+    TERM:write("Previous: "..formatCoords(self.stateManager.state.previousAnchorOffset),
+        {
+            x=0,
+            y=2,
+            textColor=colors.white,
+            bgColor=colors.blue,
+            align="right"
+        }
+    )
+
+    TERM:write("Moving to: "..formatCoords(self.stateManager.state.movingTo),
         {
             x=0,
             y=3,
@@ -309,7 +343,17 @@ function Turtle:drawHeader()
         }
     )
 
-    TERM:write("Moving to: "..formatCoords(self.stateManager.state.movingTo),
+    TERM:write("Order: "..formatCoordsOrder(self.stateManager.state.movingToOrder),
+        {
+            x=0,
+            y=3,
+            textColor=colors.white,
+            bgColor=colors.blue,
+            align="right"
+        }
+    )
+
+    TERM:write("Orientation: "..self.stateManager.state.orientation,
         {
             x=0,
             y=4,
@@ -318,16 +362,46 @@ function Turtle:drawHeader()
         }
     )
 
-    TERM:write("Orientation: "..self.stateManager.state.orientation,
+    TERM:write("Previous: "..(self.stateManager.state.previousOrientation or "N/A"),
         {
             x=0,
-            y=5,
+            y=4,
             textColor=colors.white,
-            bgColor=colors.blue
+            bgColor=colors.blue,
+            align="right"
         }
     )
 
     TERM.output.setCursorPos(0, TERM.output.height - 1)
+end
+
+function Turtle:printLines(lines)
+    TERM:drawBox({
+        x=1,
+        y=4,
+        width=TERM.output.width,
+        height=TERM.output.height,
+        bgColor=colors.white,
+        filled=true
+    })
+    
+    for i = 1, #lines, 1 do
+        local y = 5 + i
+
+        local line = lines[i]
+
+        TERM:write(line,
+            {
+                x=1,
+                y=(i == 1 and y or nil),
+                textColor=colors.black,
+                bgColor=colors.white,
+                wrap=true,
+                progressCursor=true
+            }
+        )
+    end
+
 end
 
 function Turtle:attemptRefuel()
@@ -347,9 +421,11 @@ function Turtle:attemptRefuel()
     local movingToOrder = self:getStateValue("movingToOrder")
 
     if needsRefueling then
-        -- print("  - Attempting refuel...")
-        -- print("  - Current fuel level: "..currentFuelPercent.."%")
-        -- print("  - Target fuel level: "..self.options.refuelAmountPercent.."%")
+        -- self:printLines({
+        --     "Attempting refuel...",
+        --     "Current fuel level: "..currentFuelPercent.."%",
+        --     "Target fuel level: "..self.options.refuelAmountPercent.."%"
+        -- })
 
         self:drawHeader()
 
@@ -360,9 +436,6 @@ function Turtle:attemptRefuel()
 
             while not success do
                 if error then
-                    print("  - Refuel failed: "..error)
-                    print("  - Current fuel level: "..currentFuelPercent.."%")
-
                     if error == "Items not combustible"  then
                         if self.options.fuelInventorySide == "down" then
                             turtle.dropUp(64)
@@ -375,13 +448,21 @@ function Turtle:attemptRefuel()
 
                     if self.options.fuelInventorySide and self.options.minimumFuelStock then
                         if not self:isAtAnchor() then
-                            print("  - Returning to anchor to restock fuel...")
+                            self:printLines({
+                                "Refuel failed: "..error,
+                                "Current fuel level: "..currentFuelPercent.."%",
+                                "Returning to anchor to restock fuel..."
+                            })
                             didAnchorReturn = true
                             self:returnToAnchor(true)
                         end
                         self:attemptRestock()
                     else
-                        print("  - Retrying in 5 seconds...")
+                        self:printLines({
+                            "Refuel failed: "..error,
+                            "Current fuel level: "..currentFuelPercent.."%",
+                            "Retrying in 5 seconds..."
+                        })
                         sleep(5)
                     end
                 end
@@ -389,7 +470,9 @@ function Turtle:attemptRefuel()
                 turtle.select(self.options.fuelSlot)
                 success, error = turtle.refuel(1)
 
-                -- print("  - Refueled to: "..currentFuelPercent.."%")
+                -- self:printLines({
+                --     "Refueled to: "..currentFuelPercent.."%"
+                -- })
                 self:drawHeader()
             end
 
@@ -428,9 +511,11 @@ function Turtle:attemptRestock()
     local fuelItemCount = turtle.getItemCount(self.options.fuelSlot)
 
     if fuelItemCount < self.options.minimumFuelStock then
-        print("  - Attempting restock")
-        print("  - Current stock count: "..fuelItemCount)
-        print("  - Target stock count: "..self.options.minimumFuelStock)
+        self:printLines({
+            "Attempting restock",
+            "Current stock count: "..fuelItemCount,
+            "Target stock count: "..self.options.minimumFuelStock
+        })
 
         self:drawHeader()
 
@@ -451,9 +536,11 @@ function Turtle:attemptRestock()
 
             while not success do
                 if error then
-                    print("  - Could not restock fuel: "..error)
-                    print("  - Current stock count: "..fuelItemCount)
-                    print("  - Retrying in 5 seconds...")
+                    self:printLines({
+                        "Could not restock fuel: "..error,
+                        "Current stock count: "..fuelItemCount,
+                        "Retrying in 5 seconds..."
+                    })
 
                     self:drawHeader()
 
@@ -472,7 +559,9 @@ function Turtle:attemptRestock()
 
             fuelItemCount = turtle.getItemCount(self.options.fuelSlot)
 
-            -- print("  - Restocked to: "..fuelItemCount)
+            self:printLines({
+                "Restocked to: "..fuelItemCount.." / "..self.options.minimumFuelStock
+            })
 
             self:drawHeader()
         end
@@ -622,8 +711,6 @@ function Turtle:forward(distance, noRefuelAttempt)
     self:setStateValue("movingTo", utils.tableShallowClone(movingTo))
 
     local function updateState(increment)
-        orientation = self:getStateValue("orientation")
-
         -- State update
         if orientation == "forward" then
             self:incrementAnchorZ(increment)
@@ -652,8 +739,10 @@ function Turtle:forward(distance, noRefuelAttempt)
                 if error == "Movement obstructed" and self.options.clearObstructions then
                     self:dig(nil, noRefuelAttempt)
                 else
-                    print("  - Movement forward failed: "..error)
-                    print("  - Retrying in 5 seconds...")
+                    self:printLines({
+                        "Movement forward failed: "..error,
+                        "Retrying in 5 seconds..."
+                    })
 
                     sleep(5)
                 end
@@ -703,8 +792,6 @@ function Turtle:back(distance, noRefuelAttempt)
     self:setStateValue("movingTo", utils.tableShallowClone(movingTo))
 
     local function updateState(increment)
-        orientation = self:getStateValue("orientation")
-
         -- State update
         if orientation == "forward" then
             self:incrementAnchorZ(-increment)
@@ -735,8 +822,10 @@ function Turtle:back(distance, noRefuelAttempt)
                     self:dig(nil, noRefuelAttempt)
                     self:turnAround()
                 else
-                    print("  - Movement back failed: "..error)
-                    print("  - Retrying in 5 seconds...")
+                    self:printLines({
+                        "Movement back failed: "..error,
+                        "Retrying in 5 seconds..."
+                    })
 
                     sleep(5)
                 end
@@ -795,8 +884,10 @@ function Turtle:up(distance, noRefuelAttempt)
                 if error == "Movement obstructed" and self.options.clearObstructions then
                     self:digUp(nil, noRefuelAttempt)
                 else
-                    print("  - Movement up failed: "..error)
-                    print("  - Retrying in 5 seconds...")
+                    self:printLines({
+                        "Movement up failed: "..error,
+                        "Retrying in 5 seconds..."
+                    })
 
                     sleep(5)
                 end
@@ -845,8 +936,10 @@ function Turtle:down(distance, noRefuelAttempt)
                 if error == "Movement obstructed" and self.options.clearObstructions then
                     self:digDown(nil, noRefuelAttempt)
                 else
-                    print("  - Movement down failed: "..error)
-                    print("  - Retrying in 5 seconds...")
+                    self:printLines({
+                        "Movement down failed: "..error,
+                        "Retrying in 5 seconds..."
+                    })
 
                     sleep(5)
                 end
@@ -875,8 +968,10 @@ function Turtle:dig(side, noRefuelAttempt)
     local success, error
     while not success do
         if error then
-            print("  - Dig failed: "..error)
-            print("  - Retrying in 5 seconds...")
+            self:printLines({
+                "Dig failed: "..error,
+                "Retrying in 5 seconds..."
+            })
 
             sleep(5)
         end
@@ -893,8 +988,10 @@ function Turtle:digDown(side, noRefuelAttempt)
     local success, error
     while not success do
         if error then
-            print("  - Dig down failed: "..error)
-            print("  - Retrying in 5 seconds...")
+            self:printLines({
+                "Dig down failed: "..error,
+                "Retrying in 5 seconds..."
+            })
 
             sleep(5)
         end
@@ -911,8 +1008,10 @@ function Turtle:digUp(side, noRefuelAttempt)
     local success, error
     while not success do
         if error then
-            print("  - Dig up failed: "..error)
-            print("  - Retrying in 5 seconds...")
+            self:printLines({
+                "Dig up failed: "..error,
+                "Retrying in 5 seconds..."
+            })
 
             sleep(5)
         end
