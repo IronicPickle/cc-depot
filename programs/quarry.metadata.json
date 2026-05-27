@@ -11,12 +11,41 @@
       "default": "back"
     },
     {
+      "name": "minimumFuelStock",
+      "label": "Minimum Fuel Stock",
+      "description": "The minimum fuel the turtle should take when restocking before continuing to operate.",
+      "type": "number",
+      "default": 32
+    },
+    {
+      "name": "refuelThresholdPercent",
+      "label": "Refuel Threshold",
+      "description": "The minimum fuel percent the turtle should operate at before attempting to refuel.",
+      "type": "number",
+      "default": 2
+    },
+    {
+      "name": "refuelAmountPercent",
+      "label": "Refuel Amount",
+      "description": "The fuel percent the turtle should reach when refueling before continuing to operate.",
+      "type": "number",
+      "default": 5
+    },
+    {
       "name": "storeInventorySide",
       "label": "Store Inventory Side",
       "description": "The side of the turtle an inventory to store mined resources will be made available.",
       "type": "string",
       "valid": ["bottom", "top", "back", "front", "right", "left"],
       "default": "left"
+    },
+    {
+      "name": "diggingToolSide",
+      "label": "Digging Tool Side",
+      "description": "The side of the turtle a tool is present that should be used to dig blocks.",
+      "type": "string",
+      "valid": ["right", "left"],
+      "default": "right"
     },
     {
       "name": "x",

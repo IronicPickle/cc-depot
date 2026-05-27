@@ -20,8 +20,11 @@ local TURTLE = Turtle:new(
         }
     ),
     {
+        refuelThresholdPercent = CONFIG.refuelThresholdPercent,
+        refuelAmountPercent = CONFIG.refuelAmountPercent,
         fuelInventorySide = CONFIG.fuelInventorySide,
-        minimumFuelStock = 32,
+        minimumFuelStock = CONFIG.minimumFuelStock,
+        mainToolSlotSide = CONFIG.diggingToolSide
     }
 )
 

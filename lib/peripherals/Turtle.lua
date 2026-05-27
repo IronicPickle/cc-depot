@@ -30,9 +30,9 @@ local DEFAULT_OPTIONS = {
     -- Which inventory slot to store fuel in
     fuelSlot = 16,
     -- The minimum fuel percent the turtle will operate at before refueling
-    refuelThresholdPercent = 19.1,
+    refuelThresholdPercent = 2,
     -- The target fuel percent the turtle will attempt to reach when refueling
-    refuelAmountPercent = 19,
+    refuelAmountPercent = 5,
     -- Which side of the turtle to use for accessing fuel
     fuelInventorySide = nil,
     -- How many fuel items should the turtle require as stock
@@ -40,7 +40,7 @@ local DEFAULT_OPTIONS = {
     -- Whether the turtle should clear blocks when movement it obstructed
     clearObstructions = true,
     -- The default tool slot side to use when clearing blocks
-    mainToolSlotSide = "left"
+    mainToolSlotSide = "right"
 }
 
 function Turtle:new(stateManager, options)
