@@ -231,7 +231,7 @@ local function printProgramList(programList)
         })
     end
 
-    return formattedProgramList, totalFormattedLines, availableHeight, cursorY
+    return formattedProgramList, totalFormattedLines, availableHeight, remainingHeight, cursorY
 end
 
 local KEY_UP = 265
@@ -240,7 +240,9 @@ local KEY_ENTER = 257
 
 local function startProgramSelection(programList)
     while true do
-        local formattedProgramsList, totalFormattedLines, availableHeight, cursorY  = printProgramList(programList)
+        local formattedProgramsList, totalFormattedLines, availableHeight, remainingHeight, cursorY  = printProgramList(programList)
+
+        local heightUsed = availableHeight - remainingHeight
 
         local selectedProgramLines = formattedProgramsList[SELECTED_PROGRAM_INDEX]
         local prevProgramLines = formattedProgramsList[SELECTED_PROGRAM_INDEX - 1] or {}
@@ -264,7 +266,7 @@ local function startProgramSelection(programList)
                 SELECTED_PROGRAM_INDEX = SELECTED_PROGRAM_INDEX - 1
             end
         elseif key == KEY_DOWN then
-            if DISPLAYED_PROGRAMS_LINES_OFFSET == (totalFormattedLines - availableHeight) and SELECTED_PROGRAM_INDEX == #programList then goto continue end
+            if DISPLAYED_PROGRAMS_LINES_OFFSET == (totalFormattedLines - heightUsed) and SELECTED_PROGRAM_INDEX == #programList then goto continue end
             
             if isAtFinalLine then
                 DISPLAYED_PROGRAMS_LINES_OFFSET = DISPLAYED_PROGRAMS_LINES_OFFSET + 1
