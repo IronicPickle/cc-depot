@@ -15,6 +15,7 @@ local MODEM = peripheral.find("modem")
 
 -- Globals
 local SELECTED_PROGRAM_INDEX = 1
+local DISPLAYED_PROGRAMS_LINES_OFFSET = 0
 local RUNNER_UPDATE_CHANNEL = 59941
 
 local function fetchRepoContents(file)
@@ -121,31 +122,116 @@ local function printProgramList(programList)
         y=3,
         align="center",
         textColor=colors.lightGray,
-        bgColor=colors.blue
+        bgColor=colors.blue,
+        wrap=true
     })
 
-    local bodyYOffset = headerHeight + 1
+    local bodyYOffset = headerHeight + 2
+    local availableHeight = TERMINAL.output.height - bodyYOffset
 
-    TERMINAL:write("", {
-        x=0,
-        y=bodyYOffset,
-        progressCursor=true
-    })
+    local formattedProgramList = {}
+    local totalFormattedLines = 0
 
     for i, program in ipairs(programList) do
+        local xPadding = 2
+        local maxX = TERMINAL.output.width - xPadding
+
         local isSelected = i == SELECTED_PROGRAM_INDEX
 
-        local programString = (isSelected and "> " or "  ")..program.label.." ("..program.description..")"
+        local programString = (isSelected and "> " or " ")..program.label.." ("..program.description..")"
 
-        TERMINAL:write(programString, {
+        local startPadding = programString:match("^%s+") or ""
+        local endPadding = programString:match("%s+$") or ""
+
+        local programStringList = {startPadding}
+
+        totalFormattedLines = totalFormattedLines + 1
+
+        for subString in programString:gmatch("([^%s]+)") do
+            local newOutputText = #programStringList[#programStringList] == 0 and subString or programStringList[#programStringList].." "..subString
+            if #newOutputText > maxX then
+                totalFormattedLines = totalFormattedLines + 1
+                table.insert(programStringList, subString)
+            else
+                programStringList[#programStringList] = newOutputText
+            end
+        end
+        
+
+        programStringList[#programStringList] = programStringList[#programStringList] .. endPadding
+
+        table.insert(formattedProgramList, programStringList)
+    end
+
+    local remainingHeight = availableHeight
+
+    local linesTraversed = 0
+
+    for _, lines in ipairs(formattedProgramList) do
+
+        for _, line in ipairs(lines) do
+            local lineY = (availableHeight - remainingHeight)
+            local y = bodyYOffset + lineY
+
+            linesTraversed = linesTraversed + 1
+
+            if linesTraversed <= DISPLAYED_PROGRAMS_LINES_OFFSET then
+                goto continue2
+            end
+
+            local canPrintLine = remainingHeight > 0
+            if not canPrintLine then goto continue1 end
+
+            remainingHeight = remainingHeight - 1
+
+            TERMINAL:write(line, {
+                x=0,
+                xPadding=1,
+                y=y,
+                textColor=colors.black,
+                bgColor=colors.lightBlue
+            })
+
+            ::continue2::
+        end
+
+        ::continue1::
+    end
+
+    local cursorY = -DISPLAYED_PROGRAMS_LINES_OFFSET
+
+    for i, lines in ipairs(formattedProgramList) do
+        local isSelected = i == SELECTED_PROGRAM_INDEX
+
+        cursorY = cursorY + #lines
+
+        if isSelected then
+            break
+        end
+        
+    end
+
+    if DISPLAYED_PROGRAMS_LINES_OFFSET > 0 then
+        TERMINAL:write("/\\", {
             x=0,
-            xPadding=1,
+            y=bodyYOffset - 1,
             textColor=colors.black,
             bgColor=colors.lightBlue,
-            wrap=true,
-            progressCursor=true
+            align="center"
         })
     end
+
+    if (DISPLAYED_PROGRAMS_LINES_OFFSET + availableHeight) < totalFormattedLines then
+        TERMINAL:write("\\/", {
+            x=0,
+            y=TERMINAL.output.height,
+            textColor=colors.black,
+            bgColor=colors.lightBlue,
+            align="center"
+        })
+    end
+
+    return formattedProgramList, totalFormattedLines, availableHeight, cursorY
 end
 
 local KEY_UP = 265
@@ -153,18 +239,38 @@ local KEY_DOWN = 264
 local KEY_ENTER = 257
 
 local function startProgramSelection(programList)
-
     while true do
-        printProgramList(programList)
+        local formattedProgramsList, totalFormattedLines, availableHeight, cursorY  = printProgramList(programList)
+
+        local selectedProgramLines = formattedProgramsList[SELECTED_PROGRAM_INDEX]
+        local prevProgramLines = formattedProgramsList[SELECTED_PROGRAM_INDEX - 1] or {}
+
+        local actualCursorY = (cursorY - #selectedProgramLines) + 1
+        local availableHeightAboveCursor = (cursorY - #selectedProgramLines) 
+
+        local prevProgramVisibleHeight =( #prevProgramLines > availableHeightAboveCursor and actualCursorY > 1) and availableHeightAboveCursor or 0
+
+        local isAtFirstLine = actualCursorY <= (prevProgramVisibleHeight + 1)
+        local isAtFinalLine = cursorY >= availableHeight
 
         local _, key = os.pullEvent("key_up")
 
         if key == KEY_UP then
-            if SELECTED_PROGRAM_INDEX == 1 then goto continue end
-            SELECTED_PROGRAM_INDEX = SELECTED_PROGRAM_INDEX - 1
+            if isAtFirstLine then
+                if DISPLAYED_PROGRAMS_LINES_OFFSET == 0 then goto continue end
+                DISPLAYED_PROGRAMS_LINES_OFFSET = DISPLAYED_PROGRAMS_LINES_OFFSET - 1
+            else
+                if SELECTED_PROGRAM_INDEX == 1 then goto continue end
+                SELECTED_PROGRAM_INDEX = SELECTED_PROGRAM_INDEX - 1
+            end
         elseif key == KEY_DOWN then
-            if SELECTED_PROGRAM_INDEX == #programList then goto continue end
-            SELECTED_PROGRAM_INDEX = SELECTED_PROGRAM_INDEX + 1
+            if DISPLAYED_PROGRAMS_LINES_OFFSET == (totalFormattedLines - availableHeight) and SELECTED_PROGRAM_INDEX == #programList then goto continue end
+            
+            if isAtFinalLine then
+                DISPLAYED_PROGRAMS_LINES_OFFSET = DISPLAYED_PROGRAMS_LINES_OFFSET + 1
+            else
+                SELECTED_PROGRAM_INDEX = SELECTED_PROGRAM_INDEX + 1
+            end
         elseif key == KEY_ENTER then
             break
         end
