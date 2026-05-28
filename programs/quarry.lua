@@ -184,85 +184,108 @@ local function nextAction()
     local prettyLevel = (0 - anchorOffset.y) + 1
     local currentLevelLine = "<#> Current Level: "..prettyLevel
 
-    if shouldSkipY then
-        -- Skip level
-        TURTLE:printLines({
-            currentLevelLine,
-            "<-> Skipping level: "..prettyLevel
-        })
-        downAndScan()
-    elseif anchorOffset.z < maxZ then
-        if shouldStaggerX and anchorOffset.x % 4 == 2 then
-            -- Dig shaft
-            TURTLE:printLines({
-                currentLevelLine,
-                "<-> Digging shaft"
-            })
-            TURTLE:faceForward()
-            forwardAndScan()
-        elseif not shouldStaggerX and anchorOffset.x % 4 == 0 then
-            -- Dig shaft
-            TURTLE:printLines({
-                currentLevelLine,
-                "<-> Digging shaft"
-            })
-            TURTLE:faceForward()
-            forwardAndScan()
-        elseif anchorOffset.z == 0 then
-
-            if anchorOffset.x < maxX then
-                -- Move to next shaft
-                TURTLE:printLines({
-                    currentLevelLine,
-                    "<-> Moving to next shaft"
-                })
-                TURTLE:faceRight()
-                forwardAndScan()
-            else
-                -- Leave level
-                TURTLE:printLines({
-                    currentLevelLine,
-                    "<-> Leaving level: "..prettyLevel
-                })
-                TURTLE:faceRight()
-                TURTLE:back(maxX)
-
-                if (0 - anchorOffset.y) < maxY then
-                    -- Move to next level
-                    TURTLE:printLines({
-                        currentLevelLine,
-                        "<-> Moving to next level: "..(prettyLevel + 1)
-                    })
-                    downAndScan()
-                else
-                    -- Leave mine
-                    TURTLE:printLines({
-                        currentLevelLine,
-                        "<-> Leaving mine"
-                    })
-                    TURTLE:faceForward()
-                    TURTLE:up(maxY)
-
-                    return true
-                end
-            end
-        end
-    else
-        -- Leave shaft
-        TURTLE:printLines({
-            currentLevelLine,
-            "<-> Leaving shaft"
-        })
-        TURTLE:faceForward()
-        TURTLE:back(maxZ)
-
-        -- Move to next shaft
+    local function moveToNextShaft()
         TURTLE:printLines({
             currentLevelLine,
             "<-> Moving to next shaft"
         })
         TURTLE:faceRight()
         forwardAndScan()
+    end
+
+    local function leaveShaft()
+        TURTLE:printLines({
+            currentLevelLine,
+            "<-> Leaving shaft"
+        })
+        TURTLE:faceForward()
+        TURTLE:back(maxZ)
+    end
+
+    local function moveToNextLevel()
+        TURTLE:printLines({
+            currentLevelLine,
+            "<-> Moving to next level: "..(prettyLevel + 1)
+        })
+        downAndScan()
+    end
+
+    local function leaveLevel()
+        TURTLE:printLines({
+            currentLevelLine,
+            "<-> Leaving level: "..prettyLevel
+        })
+        TURTLE:faceRight()
+        TURTLE:back(maxX)
+
+            
+        if (0 - anchorOffset.y) < maxY then
+            -- Move to next level
+            moveToNextLevel()
+        else
+            -- Leave mine
+            TURTLE:printLines({
+                currentLevelLine,
+                "<-> Leaving mine"
+            })
+            TURTLE:faceForward()
+            TURTLE:up(maxY)
+
+            return true
+        end
+    end
+
+    local function skipLevel()
+        TURTLE:printLines({
+            currentLevelLine,
+            "<-> Skipping level: "..prettyLevel
+        })
+        downAndScan()
+    end
+
+    local function digShaft()
+        TURTLE:printLines({
+            currentLevelLine,
+            "<-> Digging shaft"
+        })
+        TURTLE:faceForward()
+        forwardAndScan()
+    end
+
+    if shouldSkipY then
+        -- Skip level
+        skipLevel()
+        
+    elseif anchorOffset.z < maxZ then
+        if shouldStaggerX and anchorOffset.x % 4 == 2 then
+            -- Dig shaft
+            digShaft()
+        elseif not shouldStaggerX and anchorOffset.x % 4 == 0 then
+            -- Dig shaft
+            digShaft()
+        elseif anchorOffset.z == 0 then
+
+            if anchorOffset.x < maxX then
+                -- Move to next shaft
+                moveToNextShaft()
+            else
+                -- Leave level
+                local isFinished = leaveLevel()
+                if isFinished then return true end
+            end
+        end
+    else
+        -- Leave shaft
+        leaveShaft()
+
+        if anchorOffset.x < maxX then
+            -- Move to next shaft
+            moveToNextShaft()
+        else
+            -- Leave level
+            local isFinished = leaveLevel()
+            if isFinished then return true end
+        end
     end
 end
 
