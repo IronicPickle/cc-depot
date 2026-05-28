@@ -128,13 +128,34 @@ function storeInventory()
 
     TURTLE:face(CONFIG.storeInventorySide)
 
-    for slot = 1, 16, 1 do
-        if slot == TURTLE.options.fuelSlot then goto continue end
+    local success, error
+    while not success do
+        if error then
+            TURTLE:printLines({
+                "Inventory store failed: "..error,
+                "Retrying in 5 seconds..."
+            })
+            sleep(5)
+        end
 
-        turtle.select(slot)
-        turtle.drop(64)
+        for slot = 1, 16, 1 do
+            if slot == TURTLE.options.fuelSlot then goto continue end
 
-        ::continue::
+            turtle.select(slot)
+            turtle.drop(64)
+
+            ::continue::
+        end
+
+        if checkIsInventoryFull() then
+            success = false
+            error = "Couldn't empty inventory"
+        else
+            success = true
+            error = nil
+        end
+
+
     end
 
     TURTLE:face(currentOrientation)
