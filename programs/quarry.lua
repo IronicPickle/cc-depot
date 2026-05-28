@@ -273,6 +273,8 @@ local function start()
 
         while not nextAction() do end
 
+        storeInventory()
+
         TURTLE:printLines({
             "# Quarry complete"
         })
