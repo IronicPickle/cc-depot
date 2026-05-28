@@ -9,7 +9,10 @@ local DIR = arg[2]
 -- Globals
 local STATE_MANAGER = StateManager:new({
     dir=DIR,
-    name="quarry"
+    name="quarry",
+    default={
+        done=false
+    }
 })
 
 local TURTLE = Turtle:new(
@@ -231,9 +234,6 @@ local function nextAction()
                     TURTLE:faceForward()
                     TURTLE:up(maxY)
 
-                    TURTLE:printLines({
-                        "# Quarry complete"
-                    })
                     return true
                 end
             end
@@ -259,14 +259,28 @@ end
 
 -- Main
 local function start()
-    TURTLE:printLines({
-        "# Quarry program started"
-    })
+    if STATE_MANAGER.state.done then
+        TURTLE:printLines({
+            "# This quarry has previously completed"
+        })
+    else
+        TURTLE:printLines({
+            "# Quarry program started"
+        })
 
-    TURTLE:initialize()
-    TURTLE:resumePosition()
+        TURTLE:initialize()
+        TURTLE:resumePosition()
 
-    while not nextAction() do end
+        while not nextAction() do end
+
+        TURTLE:printLines({
+            "# Quarry complete"
+        })
+
+        STATE_MANAGER:save({
+            done=true
+        })
+    end
 
     while true do sleep(5) end
 end
