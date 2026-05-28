@@ -295,14 +295,16 @@ local function start()
         })
     end
 
-    local _, key = os.pullEvent("key_up")
+    while true do
+        local _, key = os.pullEvent("key_up")
 
-    if key == KEY_ENTER then
-        STATE_MANAGER:save({
-            done=false
-        })
+        if key == KEY_ENTER then
+            STATE_MANAGER:save({
+                done=false
+            })
 
-        fs.open(DIR.."/CONFIGURE", "w").close()
+            fs.open(DIR.."/CONFIGURE", "w").close()
+        end
     end
 end
 
