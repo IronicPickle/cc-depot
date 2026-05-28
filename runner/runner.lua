@@ -641,7 +641,7 @@ local function runWrapper(config)
         while true do
             runProgram(config)
 
-            if(fs.exist(DIR.."/CONFIGURE")) then
+            if(fs.exists(DIR.."/CONFIGURE")) then
                 fs.delete(DIR.."/CONFIGURE")
                 QUEUED_COMMAND = "CONFIGURE"
                 return
