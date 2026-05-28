@@ -176,7 +176,7 @@ local function nextAction()
     local ySkip = CONFIG.ySkip
 
     local shouldStaggerX = anchorOffset.y % 2 ~= 0
-    local shouldSkipY = ySkip ~= nil and (-(anchorOffset.y) <= ySkip)
+    local shouldSkipY = ySkip ~= nil and (-(anchorOffset.y) < ySkip)
     if checkIsInventoryFull() then
         storeInventory()
     end
@@ -188,7 +188,7 @@ local function nextAction()
         -- Skip level
         TURTLE:printLines({
             currentLevelLine,
-            "<-> Skipping level: "..(prettyLevel + 1)
+            "<-> Skipping level: "..prettyLevel
         })
         downAndScan()
     elseif anchorOffset.z < maxZ then
