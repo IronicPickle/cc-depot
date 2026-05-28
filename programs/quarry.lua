@@ -257,12 +257,15 @@ local function nextAction()
     end
 end
 
+local KEY_ENTER = 257
+
 -- Main
 local function start()
     TURTLE:initialize()
     if STATE_MANAGER.state.done then
         TURTLE:printLines({
-            "# This quarry has previously completed"
+            "# This quarry has previously completed",
+            "  Press Enter to reset"
         })
     else
         TURTLE:printLines({
@@ -274,7 +277,8 @@ local function start()
         storeInventory()
 
         TURTLE:printLines({
-            "# Quarry complete"
+            "# Quarry complete",
+            "  Press Enter to reset"
         })
 
         STATE_MANAGER:save({
@@ -282,7 +286,15 @@ local function start()
         })
     end
 
-    while true do sleep(5) end
+    local _, key = os.pullEvent("key_up")
+
+    if key == KEY_ENTER then
+        STATE_MANAGER:save({
+            done=false
+        })
+
+        fs.open(DIR.."/CONFIGURE", "w").close()
+    end
 end
 
 start()

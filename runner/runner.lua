@@ -560,12 +560,6 @@ local function openModem()
     end
 end
 
-local function closeModem()
-    if MODEM then
-        MODEM.close(RUNNER_UPDATE_CHANNEL)
-    end
-end
-
 local QUEUED_COMMAND = nil
 
 local function awaitCommand(config)
@@ -630,8 +624,6 @@ local function awaitCommand(config)
 
         ::continue::
     end
-
-    closeModem()
 end
 
 local function runProgram(config)
@@ -648,6 +640,13 @@ local function runWrapper(config)
     local function run()
         while true do
             runProgram(config)
+
+            if(fs.exist(DIR.."/CONFIGURE")) then
+                fs.delete(DIR.."/CONFIGURE")
+                QUEUED_COMMAND = "CONFIGURE"
+                return
+            end
+
             print("! Program exited, restarting in 5 seconds...")
             os.sleep(5)
         end
