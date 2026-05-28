@@ -119,7 +119,7 @@ local function checkIsInventoryFull()
 end
 
 
-function storeInventory()
+local function storeInventory()
     if not TURTLE:isAtAnchor() then
         TURTLE:printLines({
             "Returning to anchor to store inventory"
@@ -173,8 +173,10 @@ local function nextAction()
     local maxY = CONFIG.y - 1
     local maxZ = CONFIG.z - 1
 
-    local shouldStaggerX = anchorOffset.y % 2 ~= 0
+    local ySkip = CONFIG.ySkip
 
+    local shouldStaggerX = anchorOffset.y % 2 ~= 0
+    local shouldSkipY = ySkip ~= nil and (-(anchorOffset.y) <= ySkip)
     if checkIsInventoryFull() then
         storeInventory()
     end
@@ -182,7 +184,14 @@ local function nextAction()
     local prettyLevel = (0 - anchorOffset.y) + 1
     local currentLevelLine = "<#> Current Level: "..prettyLevel
 
-    if anchorOffset.z < maxZ then
+    if shouldSkipY then
+        -- Skip level
+        TURTLE:printLines({
+            currentLevelLine,
+            "<-> Skipping level: "..(prettyLevel + 1)
+        })
+        downAndScan()
+    elseif anchorOffset.z < maxZ then
         if shouldStaggerX and anchorOffset.x % 4 == 2 then
             -- Dig shaft
             TURTLE:printLines({

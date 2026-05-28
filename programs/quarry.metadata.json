@@ -56,17 +56,23 @@
     },
     {
       "name": "z",
-      "label": "Z",
-      "description": "The max Z coordinate the quarry should cover.",
+      "label": "Width",
+      "description": "The width of the quarry.",
       "type": "number",
       "default": 10
     },
     {
       "name": "y",
-      "label": "Y",
-      "description": "The max Y coordinate the quarry should cover.",
+      "label": "Height",
+      "description": "The height of the quarry.",
       "type": "number",
       "default": 10
+    },
+    {
+      "name": "ySkip",
+      "label": "Y Skip",
+      "description": "The number of blocks down to skip before quarrying.",
+      "type": "number"
     }
   ]
 }
