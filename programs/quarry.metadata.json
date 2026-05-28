@@ -56,15 +56,15 @@
     },
     {
       "name": "z",
-      "label": "Width",
-      "description": "The width of the quarry.",
+      "label": "Max Z",
+      "description": "The max Z coordinate the quarry should cover.",
       "type": "number",
       "default": 10
     },
     {
       "name": "y",
-      "label": "Height",
-      "description": "The height of the quarry.",
+      "label": "Max Y",
+      "description": "The max Y coordinate the quarry should cover.",
       "type": "number",
       "default": 10
     },
