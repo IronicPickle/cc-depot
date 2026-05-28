@@ -304,6 +304,7 @@ local function start()
             })
 
             fs.open(DIR.."/CONFIGURE", "w").close()
+            break
         end
     end
 end
