@@ -259,6 +259,7 @@ end
 
 -- Main
 local function start()
+    TURTLE:initialize()
     if STATE_MANAGER.state.done then
         TURTLE:printLines({
             "# This quarry has previously completed"
@@ -267,9 +268,6 @@ local function start()
         TURTLE:printLines({
             "# Quarry program started"
         })
-
-        TURTLE:initialize()
-        TURTLE:resumePosition()
 
         while not nextAction() do end
 
